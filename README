@@ -1,0 +1,7 @@
+ruby-analysis
+
+Toolkit for Ruby type analysis.
+
+Contents:
+
+runtime/ — runtime type information collector
