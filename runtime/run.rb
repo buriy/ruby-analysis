@@ -7,10 +7,16 @@ set_trace_func proc { |event, file, line, id, binding, klass, *rest|
   trace(event, file, line, id, binding, klass)
 }
 
-def bar()
+def bar(y)
   x = 2
   puts "bar!"
+  puts $x
+  puts @x
+  puts @@y
+  puts Foo::Bar
+  44
 end
 
+y = 9
 puts "foo"
-bar()
+z = bar(y)
