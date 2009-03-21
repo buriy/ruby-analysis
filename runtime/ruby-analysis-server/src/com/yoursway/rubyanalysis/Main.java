@@ -1,11 +1,19 @@
 package com.yoursway.rubyanalysis;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.jruby.CompatVersion;
 import org.jruby.Ruby;
@@ -26,84 +34,151 @@ import org.jruby.util.KCode;
 import com.yoursway.utils.YsFileUtils;
 
 public class Main {
-	
+
 	static class ParsingResult {
 		Node ast;
 		String code;
-		
+
 		String getNodeText(Node n) {
 			ISourcePosition pos = n.getPosition();
 			return code.substring(pos.getStartOffset(), pos.getEndOffset());
 		}
 	}
 
-	private static ParsingResult parse(String fileName) {
+	private static ParsingResult parse(String fileName) throws IOException {
 		InputStream is = null;
 		ParsingResult r = new ParsingResult();
-		try {
-			is = new FileInputStream(fileName);
-			ParserConfiguration config = new ParserConfiguration(KCode.UTF8, 0,
-					true, true, CompatVersion.RUBY1_8);
-			Ruby ruby = Ruby.newInstance();
-			r.ast = new Parser(ruby).parse(fileName, is, null, config);
-			r.code = YsFileUtils.readAsString(new File(fileName));
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (is != null)
-				try {
-					is.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		}
+
+		is = new FileInputStream(fileName);
+		ParserConfiguration config = new ParserConfiguration(KCode.UTF8, 0,
+				true, true, CompatVersion.RUBY1_8);
+		Ruby ruby = Ruby.newInstance();
+		r.ast = new Parser(ruby).parse(fileName, is, null, config);
+		r.code = YsFileUtils.readAsString(new File(fileName));
+
 		return r;
 	}
 	
-	private static List<String> collectEvaluatableNames(ParsingResult r, Node n, int lineno) {
-		List<String> result = new ArrayList<String>();
+	static class EvaluatableItem {
+		String evalString;
+		Node node;
+		public EvaluatableItem(String name, Node node) {
+			evalString = name;
+			this.node = node;
+		}
+	}
+
+	private static List<EvaluatableItem> collectEvaluatables(ParsingResult r,
+			Node n, int lineno) {
+		List<EvaluatableItem> result = new ArrayList<EvaluatableItem>();
 		if (n instanceof LocalVarNode) {
-			result.add(((LocalVarNode) n).getName());
+			result.add(new EvaluatableItem(((LocalVarNode) n).getName(), n));
 		} else if (n instanceof InstVarNode) {
-			result.add(((InstVarNode) n).getName());
+			result.add(new EvaluatableItem(((InstVarNode) n).getName(), n));
 		} else if (n instanceof ClassVarNode) {
-			result.add(((ClassVarNode) n).getName());
+			result.add(new EvaluatableItem(((ClassVarNode) n).getName(), n));
 		} else if (n instanceof SelfNode) {
-			result.add(((SelfNode) n).getName());
+			result.add(new EvaluatableItem(((SelfNode) n).getName(), n));
 		} else if (n instanceof GlobalVarNode) {
-			result.add(((GlobalVarNode) n).getName());
+			result.add(new EvaluatableItem(((GlobalVarNode) n).getName(), n));
 		} else if (n instanceof ConstNode) {
-			result.add(((ConstNode) n).getName());
+			result.add(new EvaluatableItem(((ConstNode) n).getName(), n));
 		} else if (n instanceof Colon3Node) {
-			result.add(r.getNodeText(n.childNodes().get(0)) + "::" + ((Colon3Node) n).getName());			
+			result.add(new EvaluatableItem(r.getNodeText(n.childNodes().get(0)) + "::"
+					+ ((Colon3Node) n).getName(), n));
 		} else if (n instanceof DVarNode) {
-			result.add(((DVarNode) n).getName());
+			result.add(new EvaluatableItem(((DVarNode) n).getName(), n));
 		}
 		List<Node> childNodes = n.childNodes();
 		for (Node child : childNodes) {
 			ISourcePosition position = n.getPosition();
 			if (position.getStartLine() <= lineno
 					&& position.getEndLine() >= lineno) {
-				result.addAll(collectEvaluatableNames(r, child, lineno));
+				result.addAll(collectEvaluatables(r, child, lineno));
 			}
 			if (position.getStartLine() > lineno)
 				break;
-		}		
+		}
 		return result;
+	}
+
+	static class ClientHandler implements Runnable {
+
+		Socket socket;
+
+		public ClientHandler(Socket socket) {
+			this.socket = socket;
+		}
+
+		public void run() {
+			try {
+				InputStream inputStream = socket.getInputStream();
+				OutputStream outputStream = socket.getOutputStream();
+				BufferedReader inputReader = new BufferedReader(
+						new InputStreamReader(inputStream));
+				BufferedWriter outputWrite = new BufferedWriter(
+						new OutputStreamWriter(outputStream));
+				while (true) {
+					String line = inputReader.readLine();
+					if (line == null)
+						break;
+					System.out.println(line);
+					if (line.startsWith("bye")) {
+						outputWrite.write("bye\n");
+						socket.close();
+						break;
+					}
+					if (line.startsWith("evaluatable_items ")) { // evaluatable_items
+						// <file>
+						// <line>
+						StringTokenizer stringTokenizer = new StringTokenizer(
+								line, " ");
+						stringTokenizer.nextToken();
+						String file = stringTokenizer.nextToken();
+						String lineno = stringTokenizer.nextToken();
+						try {
+							ParsingResult r = parse(file);
+							System.out.println(r.ast);
+							List<EvaluatableItem> evaluatables = collectEvaluatables(
+									r, r.ast, Integer.parseInt(lineno));
+							for (EvaluatableItem i : evaluatables) {
+								outputWrite.write(i.evalString + " " + i.node.getClass().getSimpleName() + "\n");
+							}
+							outputWrite.write("done\n");
+							outputWrite.flush();
+						} catch (IOException e) {
+							e.printStackTrace();
+							outputWrite.write("error\n");
+							outputWrite.flush();
+						}
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				try {
+					socket.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+			System.out.println("-1 client connected");
+		}
 	}
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		ParsingResult r = parse("/Users/fourdman/Projects/ruby-analysis/runtime/run.rb");		
-		System.out.println(r.ast);
-		int linesCount = r.code.split("\n").length;
-		for (int i = 0; i < linesCount; i++) {
-			System.out.println("line " + (i + 1));
-			for (String s : collectEvaluatableNames(r, r.ast, i)) 
-				System.out.print(s + " ");
-			System.out.println();
+		try {
+			ServerSocket serverSocket = new ServerSocket(6789);
+			System.out.println("running");
+			while (true) {
+				Socket socket = serverSocket.accept();
+				System.out.println("+1 client connected");
+				new Thread(new ClientHandler(socket)).start();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 

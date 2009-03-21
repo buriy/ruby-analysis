@@ -14,6 +14,7 @@ def bar(y)
   puts @x
   puts @@y
   puts Foo::Bar
+  x.to_i
   44
 end
 
