@@ -84,8 +84,12 @@ public class Main {
 		} else if (n instanceof ConstNode) {
 			result.add(new EvaluatableItem(((ConstNode) n).getName(), n));
 		} else if (n instanceof Colon3Node) {
+			if (n.childNodes().size() > 0) {
 			result.add(new EvaluatableItem(r.getNodeText(n.childNodes().get(0)) + "::"
 					+ ((Colon3Node) n).getName(), n));
+			} else {
+				result.add(new EvaluatableItem(((Colon3Node) n).getName(), n));
+			}
 		} else if (n instanceof DVarNode) {
 			result.add(new EvaluatableItem(((DVarNode) n).getName(), n));
 		}
