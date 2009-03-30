@@ -43,6 +43,11 @@ public class Main {
 			ISourcePosition pos = n.getPosition();
 			return code.substring(pos.getStartOffset(), pos.getEndOffset());
 		}
+		
+		int lineCount() {
+			String[] split = code.split("\n");
+			return split.length;
+		}
 	}
 
 	private static ParsingResult parse(String fileName) throws IOException {
@@ -70,32 +75,44 @@ public class Main {
 
 	private static List<EvaluatableItem> collectEvaluatables(ParsingResult r,
 			Node n, int lineno) {
+		ISourcePosition position = n.getPosition();		
 		List<EvaluatableItem> result = new ArrayList<EvaluatableItem>();
-		if (n instanceof LocalVarNode) {
-			result.add(new EvaluatableItem(((LocalVarNode) n).getName(), n));
-		} else if (n instanceof InstVarNode) {
-			result.add(new EvaluatableItem(((InstVarNode) n).getName(), n));
-		} else if (n instanceof ClassVarNode) {
-			result.add(new EvaluatableItem(((ClassVarNode) n).getName(), n));
-		} else if (n instanceof SelfNode) {
-			result.add(new EvaluatableItem(((SelfNode) n).getName(), n));
-		} else if (n instanceof GlobalVarNode) {
-			result.add(new EvaluatableItem(((GlobalVarNode) n).getName(), n));
-		} else if (n instanceof ConstNode) {
-			result.add(new EvaluatableItem(((ConstNode) n).getName(), n));
-		} else if (n instanceof Colon3Node) {
-			if (n.childNodes().size() > 0) {
-			result.add(new EvaluatableItem(r.getNodeText(n.childNodes().get(0)) + "::"
-					+ ((Colon3Node) n).getName(), n));
-			} else {
-				result.add(new EvaluatableItem(((Colon3Node) n).getName(), n));
+		if (position.getStartLine() == lineno
+				&& position.getEndLine() == lineno) {
+			if (n instanceof LocalVarNode) {
+				result
+						.add(new EvaluatableItem(((LocalVarNode) n).getName(),
+								n));
+			} else if (n instanceof InstVarNode) {
+				result.add(new EvaluatableItem(((InstVarNode) n).getName(), n));
+			} else if (n instanceof ClassVarNode) {
+				result
+						.add(new EvaluatableItem(((ClassVarNode) n).getName(),
+								n));
+			} else if (n instanceof SelfNode) {
+				result.add(new EvaluatableItem(((SelfNode) n).getName(), n));
+			} else if (n instanceof GlobalVarNode) {
+				result
+						.add(new EvaluatableItem(((GlobalVarNode) n).getName(),
+								n));
+			} else if (n instanceof ConstNode) {
+				result.add(new EvaluatableItem(((ConstNode) n).getName(), n));
+			} else if (n instanceof Colon3Node) {
+				if (n.childNodes().size() > 0) {
+					result.add(new EvaluatableItem(r.getNodeText(n.childNodes()
+							.get(0))
+							+ "::" + ((Colon3Node) n).getName(), n));
+				} else {
+					result.add(new EvaluatableItem(((Colon3Node) n).getName(),
+							n));
+				}
+			} else if (n instanceof DVarNode) {
+				result.add(new EvaluatableItem(((DVarNode) n).getName(), n));
 			}
-		} else if (n instanceof DVarNode) {
-			result.add(new EvaluatableItem(((DVarNode) n).getName(), n));
 		}
 		List<Node> childNodes = n.childNodes();
 		for (Node child : childNodes) {
-			ISourcePosition position = n.getPosition();
+			position = child.getPosition();
 			if (position.getStartLine() <= lineno
 					&& position.getEndLine() >= lineno) {
 				result.addAll(collectEvaluatables(r, child, lineno));
@@ -131,8 +148,7 @@ public class Main {
 						outputWrite.write("bye\n");
 						socket.close();
 						break;
-					}
-					if (line.startsWith("evaluatable_items ")) { // evaluatable_items
+					} else if (line.startsWith("evaluatable_items ")) { // evaluatable_items
 						// <file>
 						// <line>
 						StringTokenizer stringTokenizer = new StringTokenizer(
@@ -142,7 +158,6 @@ public class Main {
 						String lineno = stringTokenizer.nextToken();
 						try {
 							ParsingResult r = parse(file);
-							System.out.println(r.ast);
 							List<EvaluatableItem> evaluatables = collectEvaluatables(
 									r, r.ast, Integer.parseInt(lineno));
 							for (EvaluatableItem i : evaluatables) {
@@ -155,6 +170,33 @@ public class Main {
 							outputWrite.write("error\n");
 							outputWrite.flush();
 						}
+					} else if (line.startsWith("parse ")) {						
+						// <file>
+						StringTokenizer stringTokenizer = new StringTokenizer(
+								line, " ");
+						stringTokenizer.nextToken();
+						String file = stringTokenizer.nextToken();
+						try {
+							ParsingResult r = parse(file);						
+							int lineCount = r.lineCount();
+							for (int lineno = 0; lineno < lineCount; lineno++) {
+								outputWrite.write(lineno + "\n");
+								List<EvaluatableItem> evaluatables = collectEvaluatables(
+										r, r.ast, lineno);
+								for (EvaluatableItem i : evaluatables) {
+									outputWrite.write(i.evalString + " " + i.node.getClass().getSimpleName() + "\n");
+								}
+							}
+							outputWrite.write("done\n");
+							outputWrite.flush();
+						} catch (IOException e) {
+							e.printStackTrace();
+							outputWrite.write("error\n");
+							outputWrite.flush();
+						}
+					} else {
+						outputWrite.write("error\n");
+						outputWrite.flush();
 					}
 				}
 			} catch (IOException e) {

@@ -1,54 +1,69 @@
+#!/usr/bin/ruby
+
 require 'socket'
 
 class ParsingClient
   
   def initialize
-    puts "boom!"
     @sock = TCPSocket.new("localhost", 6789)
+    @files = {}
   end
   
   def items_at(file, line)
-    @sock << "evaluatable_items #{file} #{line}\n"
-    result = []
-    while (true) 
-      l = @sock.readline
-      if l =~ /^error.*$/
-        return nil
+    file_result = @files[file]
+    if not file_result
+      @sock << "parse #{file}\n"
+      file_result = {}
+      result = []
+      lno = 0
+      while (true) 
+        l = @sock.readline
+        break if l =~ /^error.*$/
+        break if l =~ /^done.*$/
+        if l =~ /^\d+$/
+          lno = l.to_i
+          result = []
+          file_result[lno] = result
+          next
+        end
+        s = l.split
+        result << { "name" => s[0], "type" => s[1] }
       end
-      if l =~ /^done.*$/
-        return result
-      end
-      s = l.split
-      result << { "name" => s[0], "type" => s[1] }
+      @files[file] = file_result
     end
-    result
+    return file_result[line]
   end
   
 end
 
 $parsing = ParsingClient.new()
+$tracing_stream = File.new("trace.log", "w")
 
 def trace(event, file, line, id, binding, klass)            
   l = File.open(file, "r").readlines[line - 1]  
   file = File.expand_path(file)
+  current_file = File.expand_path(__FILE__)
+  return if (current_file == file)
   return if (event != "line")
-  puts "#{event} #{file}:#{line} #{l}"
+  
+  $tracing_stream.puts "#{event} #{line} #{file} \t\t\t#{l}"
   
   items = $parsing.items_at(file, line - 1)
   if items
-    p items
-    result = []
+    #$tracing_stream.puts items
+    #result = []
     items.each { |i|
       begin 
         v = eval(i["name"], binding).class.to_s
       rescue Object => e
         v = "<error:#{e}>"
       end
-      result << { "name" => i["name"], "type" => v}
+      #result << { "name" => i["name"], "type" => v}
+      $tracing_stream.puts "#{i["name"]} #{v}"
     }
-    p result
+    #$tracing_stream.puts result
   else
-    puts "- failed to fetch evaluatable items"
+    $tracing_stream.puts "- failed to fetch evaluatable items"
   end
 end
 
@@ -56,23 +71,4 @@ set_trace_func proc { |event, file, line, id, binding, klass, *rest|
   trace(event, file, line, id, binding, klass)
 }
 
-@@y = 45
-
-class Foo
-  Bar = 33
-end
-
-def bar(y)
-  x = 2
-  puts "bar!"
-  puts $x
-  puts @x
-  puts @@y
-  puts Foo::Bar
-  x.to_i
-  44
-end
-
-y = 9
-puts "foo"
-z = bar(y)
+require ARGV[0]

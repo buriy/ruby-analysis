@@ -1,0 +1,25 @@
+line 1 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			z = $xarklajskfljasdlk
+$xarklajskfljasdlk NilClass
+line 2 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			@@y = 45
+line 4 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			class Foo
+Foo <error:uninitialized constant Foo>
+line 5 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  Bar = 33
+line 8 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			def bar(y)
+line 19 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			y = 9
+line 20 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			puts "foo"
+line 21 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			z = bar(y)
+y Fixnum
+line 9 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  x = 2
+line 10 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  puts "bar!"
+line 11 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  puts $x
+$x NilClass
+line 12 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  puts @x
+@x NilClass
+line 13 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  puts @@y
+@@y Fixnum
+line 14 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  puts Foo::Bar
+Foo::Bar Fixnum
+Foo Class
+line 15 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  x.to_i
+x Fixnum
+line 16 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  44
