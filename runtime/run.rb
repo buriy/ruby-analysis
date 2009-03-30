@@ -54,7 +54,11 @@ def trace(event, file, line, id, binding, klass)
     #result = []
     items.each { |i|
       begin 
-        v = eval(i["name"], binding).class.to_s
+        eval_res = eval(i["name"], binding)
+        v = eval_res.class.to_s
+        if v == "Class"
+          v = "#{v}[#{eval_res.name}]"
+        end
       rescue Object => e
         v = "<error:#{e}>"
       end

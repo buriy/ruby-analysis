@@ -17,5 +17,9 @@ def bar(y)
 end
 
 y = 9
+x = Foo
+puts x
+x2 = Foo.new
+puts x2
 puts "foo"
 z = bar(y)
