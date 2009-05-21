@@ -1,3 +1,5 @@
+require "/Users/fourdman/bar.rb"
+
 z = $xarklajskfljasdlk
 @@y = 45
 

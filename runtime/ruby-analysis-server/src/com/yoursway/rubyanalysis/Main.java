@@ -113,6 +113,8 @@ public class Main {
 		List<Node> childNodes = n.childNodes();
 		for (Node child : childNodes) {
 			position = child.getPosition();
+			if (position == ISourcePosition.INVALID_POSITION)
+				continue;
 			if (position.getStartLine() <= lineno
 					&& position.getEndLine() >= lineno) {
 				result.addAll(collectEvaluatables(r, child, lineno));

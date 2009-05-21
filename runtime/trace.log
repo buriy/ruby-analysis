@@ -1,33 +1,34 @@
-line 1 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			z = $xarklajskfljasdlk
+line 1 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
+line 3 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 $xarklajskfljasdlk NilClass
-line 2 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			@@y = 45
-line 4 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			class Foo
+line 4 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
+line 6 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 Foo <error:uninitialized constant Foo>
-line 5 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  Bar = 33
-line 8 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			def bar(y)
-line 19 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			y = 9
-line 20 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			x = Foo
+line 7 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
+line 10 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
+line 21 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
+line 22 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 Foo Class[Foo]
-line 21 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			puts x
+line 23 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 x Class[Foo]
-line 22 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			x2 = Foo.new
+line 24 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 Foo Class[Foo]
-line 23 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			puts x2
+line 25 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 x2 Foo
-line 24 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			puts "foo"
-line 25 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			z = bar(y)
+line 26 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
+line 27 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 y Fixnum
-line 9 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  x = 2
-line 10 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  puts "bar!"
-line 11 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  puts $x
+line 11 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
+line 12 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
+line 13 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 $x NilClass
-line 12 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  puts @x
+line 14 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 @x NilClass
-line 13 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  puts @@y
+line 15 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 @@y Fixnum
-line 14 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  puts Foo::Bar
+line 16 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 Foo::Bar Fixnum
 Foo Class[Foo]
-line 15 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  x.to_i
+line 17 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb
 x Fixnum
-line 16 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb 			  44
+line 18 /Users/fourdman/Projects/ruby-analysis/runtime/test.rb

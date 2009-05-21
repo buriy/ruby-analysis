@@ -38,6 +38,8 @@ end
 
 $parsing = ParsingClient.new()
 $tracing_stream = File.new("trace.log", "w")
+$pwd = `pwd`.strip
+puts $pwd
 
 def trace(event, file, line, id, binding, klass)            
   l = File.open(file, "r").readlines[line - 1]  
@@ -45,8 +47,10 @@ def trace(event, file, line, id, binding, klass)
   current_file = File.expand_path(__FILE__)
   return if (current_file == file)
   return if (event != "line")
+
+  return if (!(file =~ /^#{$pwd}.*$/))
   
-  $tracing_stream.puts "#{event} #{line} #{file} \t\t\t#{l}"
+  $tracing_stream.puts "#{event} #{line} #{file}" # \t\t\t#{l}"
   
   items = $parsing.items_at(file, line - 1)
   if items
