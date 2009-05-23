@@ -1159,17 +1159,17 @@ status open
 
 \begin_layout Plain Layout
 
-ПРОЦЕДУРА Вычислить(корневаяЦель)
+procedure Evaluate(rootgoal)
 \end_layout
 
 \begin_layout Plain Layout
 
-	ЕСЛИ completed contains rootgoal ТО
+	if completed contains rootgoal then
 \end_layout
 
 \begin_layout Plain Layout
 
-		ВЕРНУТЬ GoalAnswer(rootgoal)
+		return GoalAnswer(rootgoal)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1192,12 +1192,12 @@ status open
 
 \begin_layout Plain Layout
 
-		ЕСЛИ pruner wants to run
+		if pruner wants to run
 \end_layout
 
 \begin_layout Plain Layout
 
-		ТО Prune()
+		then Prune()
 \end_layout
 
 \begin_layout Plain Layout
@@ -1212,7 +1212,7 @@ status open
 
 \begin_layout Plain Layout
 
-	ВЕРНУТЬ GoalAnswer(rootgoal)
+	return GoalAnswer(rootgoal)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1240,7 +1240,7 @@ procedure UpdateOneGoal()
 
 \begin_layout Plain Layout
 
-	ЕСЛИ changed ТО
+	if changed then
 \end_layout
 
 \begin_layout Plain Layout
@@ -1298,7 +1298,7 @@ procudure InputAffected(goal)
 
 \begin_layout Plain Layout
 
-	ЕСЛИ changed ТО
+	if changed then
 \end_layout
 
 \begin_layout Plain Layout
@@ -1403,7 +1403,10 @@ procedure Wipe(goal)
 Для того чтобы GoalsNeeding не нарушала эффективности алгоритма, нужно чтобы
  после отсечений она не возвращала отсеченных запросов.
  Иначе это будет фактически отменять отсечения.
- Логично хранить дополнительный набор completed.
+ 
+Л
+\lang russian
+огично хранить дополнительный набор completed.
  Он должен хранить все запросы, которые обработаны и ответы на которые уже
  согласованы с подзапросами.
  Непосредственно после обновления запроса он должен помещаться в compeleted.
@@ -1431,7 +1434,589 @@ procedure Wipe(goal)
 \end_layout
 
 \begin_layout Standard
-// TODO
+Проиллюстрием работу алгоритма на конкретном примере.
+ Рассмотрим случай анализа типов в программе, приведенной в Листинге 3.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float algorithm
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+Листинг 3
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset listings
+lstparams "language=Ruby,numbers=left,numberstyle={\small}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class MyClass
+\end_layout
+
+\begin_layout Plain Layout
+
+	def foo(p1) 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		$x = $y 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		doStuff() 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		$x = p1 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		$x 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	def baz 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		self.foo $y 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	end 
+\end_layout
+
+\begin_layout Plain Layout
+
+	def boz 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		self.foo 45 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	end 
+\end_layout
+
+\begin_layout Plain Layout
+
+	def qux 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		$y = 45 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	end 
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+В данной программе нас интересует тип переменной $x в строке 7.
+ Данный вопрос будет корневым запросом при запуске алгоритма.
+ 
+\end_layout
+
+\begin_layout Standard
+Приведенные ниже схемы иллюстрируют работу алгоритма по шагам.
+ На каждой схеме обозначены все существующие запросы.
+ Запрос обозначается тремя строками:
+\end_layout
+
+\begin_layout Enumerate
+Предмет запроса
+\end_layout
+
+\begin_layout Enumerate
+Состояние: completed означает, что запрос находится в списке completed.
+ Пустая строка означает, что запрос находится в списке worklist.
+ 
+\end_layout
+
+\begin_layout Enumerate
+Ответ на запрос
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename run/r1.png
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Начало работы над запросом 
+\begin_inset Quotes eld
+\end_inset
+
+Что такое $x в строке 7?
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Запрос находится в рабочем списке и имеет пустой ответ, обозначаемый как
+ 
+\begin_inset Formula $\perp$
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename run/r2.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Корневой запрос обработан.
+ Для него потребовалось два новых запроса, которые помещены в рабочий список.
+ Ответ на корневой запрос согласован с ответами на подзапросы, и поэтому
+ запрос перемещен в список completed.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename run/r3.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Запрос 
+\begin_inset Quotes eld
+\end_inset
+
+Что такое $y?
+\begin_inset Quotes erd
+\end_inset
+
+ обработан и имеет непустой результат.
+ Поскольку корневой запрос зависит от него, корневой запрос перемещен из
+ completed в рабочий список.
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename run/r4.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Корневой запрос обработан второй раз.
+ Теперь его ответ снова согласован с подзапросами и равен Fixnum.
+ Корневой запрос снова перемещен в completed.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename run/r5.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Обработан второй подзапрос корневого запроса.
+ Для него потребовлся ответ на запрос 
+\begin_inset Quotes eld
+\end_inset
+
+Кто вызывает MyClass:foo
+\begin_inset Quotes erd
+\end_inset
+
+, который помещен в рабочий список.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename run/r6.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Обработан запрос 
+\begin_inset Quotes eld
+\end_inset
+
+Кто вызывает MyClass:foo
+\begin_inset Quotes erd
+\end_inset
+
+ и теперь он имеет ответ из двух точек вызова.
+ От него зависит запрос 
+\begin_inset Quotes eld
+\end_inset
+
+Что такое p1 в строке 6?
+\begin_inset Quotes erd
+\end_inset
+
+, поэтому тот снова перемещается в рабочий список для обработки.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename run/r7.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Повторное вычисление запроса 
+\begin_inset Quotes eld
+\end_inset
+
+Что такое p1 в строке 6?
+\begin_inset Quotes erd
+\end_inset
+
+ потребовало два подзапроса.
+ Один из них уже вычислялся и имеет ответ Fixnum.
+ Поэтому ответ на запрос изменился.
+ От него зависит корневой запрос, поэтому тот помещается в рабочий список.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename run/r8.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Корневой запрос снова согласован с подзапросами и помещен в completed.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename run/r10.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Запрос 
+\begin_inset Quotes eld
+\end_inset
+
+Что такое 45?
+\begin_inset Quotes erd
+\end_inset
+
+ обработан.
+ От него зависел 
+\begin_inset Quotes eld
+\end_inset
+
+Что такое p1 в строке 6?
+\begin_inset Quotes erd
+\end_inset
+
+, поэтому он помещен снова в рабочий список.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename run/r9.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Запрос 
+\begin_inset Quotes eld
+\end_inset
+
+Что такое p1 в строке 6?
+\begin_inset Quotes erd
+\end_inset
+
+ обработан снова.
+ Его ответ не изменился.
+ Рабочий список пустой, алгоритм останавливается.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsubsection
