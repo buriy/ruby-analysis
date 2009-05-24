@@ -375,19 +375,28 @@ Ruby поддерживает несколько парадигм програм
 
 \begin_layout Standard
 \begin_inset Float algorithm
+placement h
 wide false
 sideways false
 status open
 
 \begin_layout Plain Layout
-Листинг 1
-\begin_inset CommandInset label
-LatexCommand label
-name "Flo:Листинг-1"
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+floatname{algorithm}{Листинг}
+\end_layout
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Plain Layout
 \begin_inset listings
 lstparams "basicstyle={\scriptsize},language=Ruby,numbers=left,numberstyle={\small},stepnumber=1,tabsize=4"
 inline false
@@ -634,6 +643,19 @@ f.twc f	# возвращает 0
 
 \end_inset
 
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Пример программы на Ruby
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
 
 \end_layout
 
@@ -1136,19 +1158,32 @@ in R, являющийся файлом, который непосредстве
 \end_layout
 
 \begin_layout Standard
-Предлагаемы алгоритм использует подход описанный выше.
+Предлагаемый алгоритм использует подход описанный выше.
  Он управляется запросами, позволяет делать делать отсечения и эффективно
  кеширует ответы между вопросами.
 \end_layout
 
 \begin_layout Standard
 \begin_inset Float algorithm
+placement H
 wide false
 sideways false
 status open
 
 \begin_layout Plain Layout
-Листинг 2
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+floatname{algorithm}{Листинг}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Plain Layout
@@ -1338,6 +1373,16 @@ procedure Wipe(goal)
 \end_inset
 
 
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Управляемый запросами алгоритм с отсечениями и инкрементальным обновлением
+ вычисленных запросов
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Plain Layout
@@ -1350,7 +1395,7 @@ procedure Wipe(goal)
 \end_layout
 
 \begin_layout Standard
-Псевдокод алгоритма преставлен в Листинге 2.
+Псевдокод алгоритма преставлен в листинге 2.
  На вход алгоритм принимает goal — исходный запрос.
  Выходом алгоритма является ответ на поставленный запрос.
  
@@ -2086,7 +2131,8 @@ status open
 \begin_inset Formula $\blacktriangleleft$
 \end_inset
 
-очевидно 
+ Очевидно.
+ 
 \begin_inset Formula $\blacktriangleright$
 \end_inset
 
@@ -2255,7 +2301,7 @@ status open
 \begin_layout Standard
 \begin_inset Graphics
 	filename ir.png
-	lyxscale 20
+	lyxscale 80
 	width 100col%
 
 \end_inset
@@ -2265,8 +2311,8 @@ status open
 
 \begin_layout Standard
 Первым преобразованием является лексический и синтаксический анализ.
- Выходом этого преобразования является абстрактное дерево синтаксиса (АДС
- или AST).
+ Выходом этого преобразования является дерево абстрактного синтаксиса (ДАС
+ или, как оно будет обозначаться далее, AST).
  
 \end_layout
 
@@ -2423,6 +2469,7 @@ AST не отражает аспектов касающихся потоков �
  Каждая инструкция может иметь некоторые параметры (например, КУГ определяемого
  метода).
  Эти параметры будем называть также и параметрами вершины графа.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -2720,14 +2767,561 @@ AST не отражает аспектов касающихся потоков �
 .
 \end_layout
 
+\begin_layout Itemize
+Вспомогательные инструкции: ВХОД и ВЫХОД.
+ В каждом графе существуют в единственном экземпляре и обозначают входную
+ и выходую вершины соотвественно.
+\end_layout
+
 \begin_layout Standard
 Необходимо прокомментировать соответствие определенного набора с командами
  и конструкциями языка.
+ Во-первых, среди приведенных инструкций отсутсвуют конструкции определения
+ класса или модуля.
+ Это вызвано тем, что в языке Ruby определение класса или модуля фактически
+ равно присваиванию константе с именем класса экземпляра класса 
+\begin_inset Formula $Class$
+\end_inset
+
+ или 
+\begin_inset Formula $Module$
+\end_inset
+
+ соотвественно.
+ Поэтому определение класса заменяется на присваивание константе, а команды
+ находившиеся внутри определения, оказываются на уровень выше.
+\end_layout
+
+\begin_layout Standard
+Во-вторых, нужно заметить, что среди инструкций нет вызовов.
+ Вызовы, стоящие в исходной программе 
+\begin_inset Quotes eld
+\end_inset
+
+просто так
+\begin_inset Quotes erd
+\end_inset
+
+, преобразуются в присваивания новым вспомогательным переменным.
+ Это сделано для удобства определения возвращаемых значений методов/замыканий,
+ которые могут быть равные последней выполненной команде.
  
+\end_layout
+
+\begin_layout Standard
+Затем, так как среди инструкций нет циклов, то циклы в программе преобразуются
+ контур из условного оператора и тела цикла с выходящим ребром соотвесвующим
+ 
+\begin_inset Formula $else$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Наконец, заметим, что практически все инструкции имеют параметрами либо
+ переменные либо литералы.
+ Таким образом, вложенные вызовы и сложные выражения будут развернуты в
+ несколько последовательных инструкций с использованием новых вспомогательных
+ переменных.
+ 
+\end_layout
+
+\begin_layout Standard
+Про ребра УГ нужно сказать, что они соотвествуют естественному порядку исполнени
+я и легко могут быть построены читателем.
+ 
+\end_layout
+
+\begin_layout Standard
+Рис.
+ 11 демонструрует пример управляющего графа для программы из листинга 3.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float algorithm
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+floatname{algorithm}{Листинг}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'socket'
+\end_layout
+
+\begin_layout Plain Layout
+
+module Boz 
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+class Foo 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def bar(x) 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if isGood(x) 			
+\end_layout
+
+\begin_layout Plain Layout
+
+			y = Foo.zzz(x)  		
+\end_layout
+
+\begin_layout Plain Layout
+
+		else 			
+\end_layout
+
+\begin_layout Plain Layout
+
+			puts "oops" 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		end 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	end 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def self.zzz(x) 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		56 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	end 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	include Boz 
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+$f = Foo.new
+\end_layout
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename cfg-example.png
+	lyxscale 50
+	width 100col%
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+КУГ для программы из листинга 3
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsubsection
 Использования и определения переменных
+\end_layout
+
+\begin_layout Standard
+Будем говорить, что инструкция 
+\begin_inset Formula $v$
+\end_inset
+
+ 
+\emph on
+использует 
+\emph default
+переменную 
+\begin_inset Formula $var$
+\end_inset
+
+, если выполнено хотя бы одно из условий:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $v$
+\end_inset
+
+ содержит переменную 
+\begin_inset Formula $var$
+\end_inset
+
+ как параметр;
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $v$
+\end_inset
+
+ является вызывовом, и КУГ передаваемого замыкания содержит инструкцию,
+ использующую 
+\begin_inset Formula $var$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Будем говорить, что инструкция 
+\begin_inset Formula $v$
+\end_inset
+
+ 
+\emph on
+определяет 
+\begin_inset Formula $ $
+\end_inset
+
+
+\emph default
+переменную 
+\begin_inset Formula $var$
+\end_inset
+
+, если инструкция является присваиванием этой переменной.
+\end_layout
+
+\begin_layout Standard
+Таким образом, для каждой переменной 
+\begin_inset Formula $var$
+\end_inset
+
+ можно обозначить множества 
+\begin_inset Formula $Def(var)\subseteq V$
+\end_inset
+
+ и 
+\begin_inset Formula $Use(var)\subseteq V$
+\end_inset
+
+ — множества инструкций определяющих и использующих переменную 
+\begin_inset Formula $var$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Пусть 
+\begin_inset Formula $d\in Def(var)$
+\end_inset
+
+.
+ Тогда определим 
+\emph on
+множество использований
+\emph default
+ данного 
+\emph on
+определения
+\emph default
+ следующим образом:
+\begin_inset Formula \[
+Use_{d}=\{u\in Use(var)|\exists p,p\in Paths(d,u)\,и\, p\cap Def(var)=\{d\}\}\]
+
+\end_inset
+
+, где 
+\begin_inset Formula $Paths(d,u)$
+\end_inset
+
+ — множество всех путей от 
+\begin_inset Formula $d$
+\end_inset
+
+ до 
+\begin_inset Formula $u$
+\end_inset
+
+ в УГ.
+ 
+\end_layout
+
+\begin_layout Standard
+Пусть теперь 
+\begin_inset Formula $u\in Use(var)$
+\end_inset
+
+.
+ Определим 
+\emph on
+множество определений достигающих использование
+\emph default
+ 
+\begin_inset Formula $u$
+\end_inset
+
+ следующим образом:
+\begin_inset Formula \[
+Def_{u}(var)=\{d\in Def(var)|\exists p,p\in Paths(d,u)\,и\, p\cap Def(var)=\{d\}\}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Множества 
+\begin_inset Formula $Def_{u}(var)$
+\end_inset
+
+ и 
+\begin_inset Formula $Use_{d}$
+\end_inset
+
+ являются необходимыми и крайне часто используемыми при внутрипроцедурном
+ анализе.
+ Поэтому имеет смысл предпросчитывать их до начала работы анализа, сразу
+ после построения УГ.
+ Сделать это можно можно с помощью алгоритма, приведенного в листинге 4.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float algorithm
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+floatname{algorithm}{Листинг}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+procedure CalculateDefUse(CFG G, Node v, List visited, Map<Var, Node> reachingDe
+f)  	
+\end_layout
+
+\begin_layout Plain Layout
+
+	if visited[v] then 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		return 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	visited[v] = true 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	for var in VarsUsedBy(v) do 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		d = reachingDef[var] 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if d then 			
+\end_layout
+
+\begin_layout Plain Layout
+
+			Use[d] += v 			
+\end_layout
+
+\begin_layout Plain Layout
+
+			Def[v, var] += d 
+\end_layout
+
+\begin_layout Plain Layout
+
+	if v defines var then 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		reachingDefs[var] = v 
+\end_layout
+
+\begin_layout Plain Layout
+
+	for u in Succ(v) do 		
+\end_layout
+
+\begin_layout Plain Layout
+
+		CalculateDefUse(G, u, reachingDefs) 
+\end_layout
+
+\begin_layout Plain Layout
+
+	visited[v] = false
+\end_layout
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Построение множеств 
+\begin_inset Formula $Def_{u}$
+\end_inset
+
+ и 
+\begin_inset Formula $Use_{d}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Данный алгоритм строит множества 
+\begin_inset Formula $Def_{u}(var)$
+\end_inset
+
+ и 
+\begin_inset Formula $Use_{d}$
+\end_inset
+
+.
+ При этом время работы равно 
+\begin_inset Formula $O(количество\,путей\,в\,УГ\,от\,ВХОД\,до\,ВЫХОД)$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsubsection
