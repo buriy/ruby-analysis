@@ -1448,10 +1448,7 @@ procedure Wipe(goal)
 Для того чтобы GoalsNeeding не нарушала эффективности алгоритма, нужно чтобы
  после отсечений она не возвращала отсеченных запросов.
  Иначе это будет фактически отменять отсечения.
- 
-Л
-\lang russian
-огично хранить дополнительный набор completed.
+ Логично хранить дополнительный набор completed.
  Он должен хранить все запросы, которые обработаны и ответы на которые уже
  согласованы с подзапросами.
  Непосредственно после обновления запроса он должен помещаться в compeleted.
@@ -3207,73 +3204,99 @@ status open
 
 \begin_layout Plain Layout
 
-procedure CalculateDefUse(CFG G, Node v, List visited, Map<Var, Node> reachingDe
-f)  	
+procedure UpdateReachingDefs(CFG G, Node v, Map<Var, Node> reachingDefs)
+ 
 \end_layout
 
 \begin_layout Plain Layout
 
-	if visited[v] then 		
+	rd = ReachingDefs[v] + reachingDef
 \end_layout
 
 \begin_layout Plain Layout
 
-		return 	
+	if visited[v] && rd == reachingDefs
 \end_layout
 
 \begin_layout Plain Layout
 
-	visited[v] = true 	
+		return
 \end_layout
 
 \begin_layout Plain Layout
 
-	for var in VarsUsedBy(v) do 		
 \end_layout
 
 \begin_layout Plain Layout
 
-		d = reachingDef[var] 		
+	visited[v] = true
 \end_layout
 
 \begin_layout Plain Layout
 
-		if d then 			
 \end_layout
 
 \begin_layout Plain Layout
 
-			Use[d] += v 			
+	if v defines var then
 \end_layout
 
 \begin_layout Plain Layout
 
-			Def[v, var] += d 
+		reachingDefs[var] = v
 \end_layout
 
 \begin_layout Plain Layout
 
-	if v defines var then 		
 \end_layout
 
 \begin_layout Plain Layout
 
-		reachingDefs[var] = v 
+	for u in Succ(v) do
 \end_layout
 
 \begin_layout Plain Layout
 
-	for u in Succ(v) do 		
+		UpdateReachingDefs(G, u, reachingDefs)
 \end_layout
 
 \begin_layout Plain Layout
 
-		CalculateDefUse(G, u, reachingDefs) 
 \end_layout
 
 \begin_layout Plain Layout
 
-	visited[v] = false
+procedure BuildDefUse(CFG G)
+\end_layout
+
+\begin_layout Plain Layout
+
+	for v in V(G) do
+\end_layout
+
+\begin_layout Plain Layout
+
+		rd = reachingDefs[v]
+\end_layout
+
+\begin_layout Plain Layout
+
+		for var in VarsUsedBy(v)
+\end_layout
+
+\begin_layout Plain Layout
+
+			if rd[var]
+\end_layout
+
+\begin_layout Plain Layout
+
+				Use[rd[var]] += v
+\end_layout
+
+\begin_layout Plain Layout
+
+				Def[v, var] += rd[var]
 \end_layout
 
 \end_inset
@@ -3298,10 +3321,6 @@ f)
 
 \end_layout
 
-\begin_layout Plain Layout
-
-\end_layout
-
 \end_inset
 
 
@@ -3317,11 +3336,16 @@ f)
 \end_inset
 
 .
- При этом время работы равно 
-\begin_inset Formula $O(количество\,путей\,в\,УГ\,от\,ВХОД\,до\,ВЫХОД)$
+ При этом время его работы можно оценить как 
+\begin_inset Formula $O(|V|*A)$
 \end_inset
 
-.
+, где 
+\begin_inset Formula $A$
+\end_inset
+
+ — количество обратных двуг в УГ.
+ 
 \end_layout
 
 \begin_layout Subsubsection
@@ -3329,7 +3353,38 @@ f)
 \end_layout
 
 \begin_layout Standard
-// TODO
+Для оптимизации поиска в процессе глобального анализа, имеет смысл хранить
+ следующие структуры данных:
+\end_layout
+
+\begin_layout Itemize
+Для каждого имени глобальной переменной, поля, переменной класса и константы
+ — все присваивания в программе переменной с таким именем.
+\end_layout
+
+\begin_layout Itemize
+Для каждого имено глобальной переменной, поля, переменной класса и константы
+ — все инструкции в программе, использующие перменные с таким именем.
+\end_layout
+
+\begin_layout Itemize
+Для каждого имени метода список инструкций в программе, которые вызывают
+ метод с таким именем.
+\end_layout
+
+\begin_layout Itemize
+Для каждого имени метода список инструкций в программе, опредлеляющих метод
+ с таким именем.
+ 
+\end_layout
+
+\begin_layout Standard
+Данные списки строятся интуитивно понятным образом.
+ 
+\end_layout
+
+\begin_layout Standard
+// дописать про инкрементальное обновление
 \end_layout
 
 \begin_layout Subsection
