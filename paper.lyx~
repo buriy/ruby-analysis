@@ -4105,10 +4105,7 @@ eval.
 \begin_inset Formula $GlobalUsagesOf$
 \end_inset
 
-,
-\end_layout
-
-\begin_layout Standard
+, 
 \begin_inset Formula $GlobalAssigmentsTo$
 \end_inset
 
@@ -4145,6 +4142,465 @@ eval.
 
 \begin_layout Subsubsection
 Тип
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+SelfType(node):
+\end_layout
+
+\begin_layout Plain Layout
+
+	def = resultOf(EnclosingMethodOrClosure(node))
+\end_layout
+
+\begin_layout Plain Layout
+
+	while def is Block
+\end_layout
+
+\begin_layout Plain Layout
+
+		def = resultOf(EnclosingMethodOrClosure(def))
+\end_layout
+
+\begin_layout Plain Layout
+
+	if SinglMethDef:
+\end_layout
+
+\begin_layout Plain Layout
+
+		result = resultOf(Type(def.object))
+\end_layout
+
+\begin_layout Plain Layout
+
+	if InstMethDef:
+\end_layout
+
+\begin_layout Plain Layout
+
+		if def.isClassMethod()
+\end_layout
+
+\begin_layout Plain Layout
+
+			result = def.instType()
+\end_layout
+
+\begin_layout Plain Layout
+
+		if def.isModuleMethod()
+\end_layout
+
+\begin_layout Plain Layout
+
+			includes = resultOf(IncludesOf(def.instType()))
+\end_layout
+
+\begin_layout Plain Layout
+
+			types = EmptyType();
+\end_layout
+
+\begin_layout Plain Layout
+
+			for i in includes do
+\end_layout
+
+\begin_layout Plain Layout
+
+				types.intersectWith(i.classInstType)
+\end_layout
+
+\begin_layout Plain Layout
+
+			result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+Type(obj):
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is literal:
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = LiteralType(obj);
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is localvar:
+\end_layout
+
+\begin_layout Plain Layout
+
+	defs = resultOf(Defs(obj))
+\end_layout
+
+\begin_layout Plain Layout
+
+	types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+	for def in defs do
+\end_layout
+
+\begin_layout Plain Layout
+
+		t = resultOf(Type(def.rhs))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is argument or block argument:
+\end_layout
+
+\begin_layout Plain Layout
+
+	callers = resultOf(Callers(obj))
+\end_layout
+
+\begin_layout Plain Layout
+
+	types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+	for call in callers do
+\end_layout
+
+\begin_layout Plain Layout
+
+		arg = resultOf(ActualArg(obj.name, call))
+\end_layout
+
+\begin_layout Plain Layout
+
+		t = resultOf(Type(arg))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is instance var or class var:
+\end_layout
+
+\begin_layout Plain Layout
+
+	possibleDefs = resultOf(GlobalAssignmentsTo(obj.name))
+\end_layout
+
+\begin_layout Plain Layout
+
+	self = resultOf(SelfType(obj))
+\end_layout
+
+\begin_layout Plain Layout
+
+	types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+	for pd in possibleDefs do
+\end_layout
+
+\begin_layout Plain Layout
+
+		otherSelf = resultOf(SelfType(pd))
+\end_layout
+
+\begin_layout Plain Layout
+
+		if otherSelf.hasNonEmptyIntersectionWith(self)
+\end_layout
+
+\begin_layout Plain Layout
+
+			types.intersectWith(resultOf(Type(pd.rhs)))
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is global var or constant:
+\end_layout
+
+\begin_layout Plain Layout
+
+	defs = resultOf(GlobalAssignmentsTo(obj.name))
+\end_layout
+
+\begin_layout Plain Layout
+
+	types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+	for def in defs do
+\end_layout
+
+\begin_layout Plain Layout
+
+		t = resultOf(Type(def.rhs))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is method call:
+\end_layout
+
+\begin_layout Plain Layout
+
+	rt = resultOf(Type(obj.receiver))
+\end_layout
+
+\begin_layout Plain Layout
+
+	if rt.canBeArray and obj.name = "[]" {
+\end_layout
+
+\begin_layout Plain Layout
+
+		defs = rt.extractDefs()
+\end_layout
+
+\begin_layout Plain Layout
+
+		values = []
+\end_layout
+
+\begin_layout Plain Layout
+
+		for d in defs do
+\end_layout
+
+\begin_layout Plain Layout
+
+			usages = Usages(d, ArrayStorePattern)
+\end_layout
+
+\begin_layout Plain Layout
+
+			for u in usages do
+\end_layout
+
+\begin_layout Plain Layout
+
+				values.add(ArrayStorePattern.extractRHS(u))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types = EmptyType
+\end_layout
+
+\begin_layout Plain Layout
+
+		for v in values do
+\end_layout
+
+\begin_layout Plain Layout
+
+			t = resultOf(Type(v))
+\end_layout
+
+\begin_layout Plain Layout
+
+			types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+		result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+	} else if rt.canBeHash and obj.name = "[]" and obj.hasConstArg {
+\end_layout
+
+\begin_layout Plain Layout
+
+		defs = rt.extractDefs()
+\end_layout
+
+\begin_layout Plain Layout
+
+		values = []
+\end_layout
+
+\begin_layout Plain Layout
+
+		for d in defs do
+\end_layout
+
+\begin_layout Plain Layout
+
+			usages = Usages(d, HashStorePattern(constHashArg))
+\end_layout
+
+\begin_layout Plain Layout
+
+			for u in usages do
+\end_layout
+
+\begin_layout Plain Layout
+
+				values.add(HashStorePattern(constHashArg).extractRHS(u))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+		for v in values do
+\end_layout
+
+\begin_layout Plain Layout
+
+			t = resultOf(Type(v))
+\end_layout
+
+\begin_layout Plain Layout
+
+			types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+		result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+	} 
+\end_layout
+
+\begin_layout Plain Layout
+
+	methdefs = resultOf(Responders(obj))
+\end_layout
+
+\begin_layout Plain Layout
+
+	returnValues = []
+\end_layout
+
+\begin_layout Plain Layout
+
+	for m in methdefs do
+\end_layout
+
+\begin_layout Plain Layout
+
+		returnValues.addAll(resultOf(ReturnValues(m)))
+\end_layout
+
+\begin_layout Plain Layout
+
+	types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+	for v in returnValues do
+\end_layout
+
+\begin_layout Plain Layout
+
+		t = resultOf(Type(v))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = types 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard

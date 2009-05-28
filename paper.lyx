@@ -4105,7 +4105,7 @@ eval.
 \begin_inset Formula $GlobalUsagesOf$
 \end_inset
 
-,  
+, 
 \begin_inset Formula $GlobalAssigmentsTo$
 \end_inset
 
@@ -4145,11 +4145,643 @@ eval.
 \end_layout
 
 \begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+SelfType(node):
+\end_layout
+
+\begin_layout Plain Layout
+
+	def = resultOf(EnclosingMethodOrClosure(node))
+\end_layout
+
+\begin_layout Plain Layout
+
+	while def is Block
+\end_layout
+
+\begin_layout Plain Layout
+
+		def = resultOf(EnclosingMethodOrClosure(def))
+\end_layout
+
+\begin_layout Plain Layout
+
+	if SinglMethDef:
+\end_layout
+
+\begin_layout Plain Layout
+
+		result = resultOf(Type(def.object))
+\end_layout
+
+\begin_layout Plain Layout
+
+	if InstMethDef:
+\end_layout
+
+\begin_layout Plain Layout
+
+		if def.isClassMethod()
+\end_layout
+
+\begin_layout Plain Layout
+
+			result = def.instType()
+\end_layout
+
+\begin_layout Plain Layout
+
+		if def.isModuleMethod()
+\end_layout
+
+\begin_layout Plain Layout
+
+			includes = resultOf(IncludesOf(def.instType()))
+\end_layout
+
+\begin_layout Plain Layout
+
+			types = EmptyType();
+\end_layout
+
+\begin_layout Plain Layout
+
+			for i in includes do
+\end_layout
+
+\begin_layout Plain Layout
+
+				types.intersectWith(i.classInstType)
+\end_layout
+
+\begin_layout Plain Layout
+
+			result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+Type(obj):
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is literal:
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = LiteralType(obj);
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is localvar:
+\end_layout
+
+\begin_layout Plain Layout
+
+	defs = resultOf(Defs(obj))
+\end_layout
+
+\begin_layout Plain Layout
+
+	types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+	for def in defs do
+\end_layout
+
+\begin_layout Plain Layout
+
+		t = resultOf(Type(def.rhs))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is argument or block argument:
+\end_layout
+
+\begin_layout Plain Layout
+
+	callers = resultOf(Callers(obj))
+\end_layout
+
+\begin_layout Plain Layout
+
+	types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+	for call in callers do
+\end_layout
+
+\begin_layout Plain Layout
+
+		arg = resultOf(ActualArg(obj.name, call))
+\end_layout
+
+\begin_layout Plain Layout
+
+		t = resultOf(Type(arg))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is instance var or class var:
+\end_layout
+
+\begin_layout Plain Layout
+
+	possibleDefs = resultOf(GlobalAssignmentsTo(obj.name))
+\end_layout
+
+\begin_layout Plain Layout
+
+	self = resultOf(SelfType(obj))
+\end_layout
+
+\begin_layout Plain Layout
+
+	types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+	for pd in possibleDefs do
+\end_layout
+
+\begin_layout Plain Layout
+
+		otherSelf = resultOf(SelfType(pd))
+\end_layout
+
+\begin_layout Plain Layout
+
+		if otherSelf.hasNonEmptyIntersectionWith(self)
+\end_layout
+
+\begin_layout Plain Layout
+
+			types.intersectWith(resultOf(Type(pd.rhs)))
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is global var or constant:
+\end_layout
+
+\begin_layout Plain Layout
+
+	defs = resultOf(GlobalAssignmentsTo(obj.name))
+\end_layout
+
+\begin_layout Plain Layout
+
+	types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+	for def in defs do
+\end_layout
+
+\begin_layout Plain Layout
+
+		t = resultOf(Type(def.rhs))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if obj is method call:
+\end_layout
+
+\begin_layout Plain Layout
+
+	rt = resultOf(Type(obj.receiver))
+\end_layout
+
+\begin_layout Plain Layout
+
+	if rt.canBeArray and obj.name = "[]" {
+\end_layout
+
+\begin_layout Plain Layout
+
+		defs = rt.extractDefs()
+\end_layout
+
+\begin_layout Plain Layout
+
+		values = []
+\end_layout
+
+\begin_layout Plain Layout
+
+		for d in defs do
+\end_layout
+
+\begin_layout Plain Layout
+
+			usages = Usages(d, ArrayStorePattern)
+\end_layout
+
+\begin_layout Plain Layout
+
+			for u in usages do
+\end_layout
+
+\begin_layout Plain Layout
+
+				values.add(ArrayStorePattern.extractRHS(u))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types = EmptyType
+\end_layout
+
+\begin_layout Plain Layout
+
+		for v in values do
+\end_layout
+
+\begin_layout Plain Layout
+
+			t = resultOf(Type(v))
+\end_layout
+
+\begin_layout Plain Layout
+
+			types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+		result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+	} else if rt.canBeHash and obj.name = "[]" and obj.hasConstArg {
+\end_layout
+
+\begin_layout Plain Layout
+
+		defs = rt.extractDefs()
+\end_layout
+
+\begin_layout Plain Layout
+
+		values = []
+\end_layout
+
+\begin_layout Plain Layout
+
+		for d in defs do
+\end_layout
+
+\begin_layout Plain Layout
+
+			usages = Usages(d, HashStorePattern(constHashArg))
+\end_layout
+
+\begin_layout Plain Layout
+
+			for u in usages do
+\end_layout
+
+\begin_layout Plain Layout
+
+				values.add(HashStorePattern(constHashArg).extractRHS(u))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+		for v in values do
+\end_layout
+
+\begin_layout Plain Layout
+
+			t = resultOf(Type(v))
+\end_layout
+
+\begin_layout Plain Layout
+
+			types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+		result = types
+\end_layout
+
+\begin_layout Plain Layout
+
+	} 
+\end_layout
+
+\begin_layout Plain Layout
+
+	methdefs = resultOf(Responders(obj))
+\end_layout
+
+\begin_layout Plain Layout
+
+	returnValues = []
+\end_layout
+
+\begin_layout Plain Layout
+
+	for m in methdefs do
+\end_layout
+
+\begin_layout Plain Layout
+
+		returnValues.addAll(resultOf(ReturnValues(m)))
+\end_layout
+
+\begin_layout Plain Layout
+
+	types = EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+	for v in returnValues do
+\end_layout
+
+\begin_layout Plain Layout
+
+		t = resultOf(Type(v))
+\end_layout
+
+\begin_layout Plain Layout
+
+		types.intersectWith(t)
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = types 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 // TODO
 \end_layout
 
 \begin_layout Subsubsection
 Использования
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Usages(def, pattern):
+\end_layout
+
+\begin_layout Plain Layout
+
+result = []
+\end_layout
+
+\begin_layout Plain Layout
+
+if def.lhs is localvar {
+\end_layout
+
+\begin_layout Plain Layout
+
+	for d in resultOf(Defs(def.lhs)) do
+\end_layout
+
+\begin_layout Plain Layout
+
+		if pattern.matches(d)
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.add(d)
+\end_layout
+
+\begin_layout Plain Layout
+
+} else {
+\end_layout
+
+\begin_layout Plain Layout
+
+	usages = resultOf(GlobalUsagesOf(def.lhs.name))
+\end_layout
+
+\begin_layout Plain Layout
+
+	if def.lhs is instance or class var
+\end_layout
+
+\begin_layout Plain Layout
+
+		selfType = resultOf(SelfType(def))
+\end_layout
+
+\begin_layout Plain Layout
+
+	for u in usages do
+\end_layout
+
+\begin_layout Plain Layout
+
+		s = resultOf(SelfType(u))
+\end_layout
+
+\begin_layout Plain Layout
+
+		if !s.hasNonEmptyIntersectionWith(selfType)
+\end_layout
+
+\begin_layout Plain Layout
+
+			remove u from usages
+\end_layout
+
+\begin_layout Plain Layout
+
+	for u in usages do		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if pattern.matches
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.add(u)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if u is assignment from def.lhs to another var
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.addAll(resultOf(Usages(u, pattern)))
+\end_layout
+
+\begin_layout Plain Layout
+
+		if u is call and passed as argument
+\end_layout
+
+\begin_layout Plain Layout
+
+			resp = resultOf(Responders(u))
+\end_layout
+
+\begin_layout Plain Layout
+
+			for r in resp do
+\end_layout
+
+\begin_layout Plain Layout
+
+				ass = resultOf(InternalArg(argNo(u), r))
+\end_layout
+
+\begin_layout Plain Layout
+
+				u2 = resultOf(Usages(ass, pattern))
+\end_layout
+
+\begin_layout Plain Layout
+
+				result.addAll(u2)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if u returns
+\end_layout
+
+\begin_layout Plain Layout
+
+			calls = resultOf(Callers(u))
+\end_layout
+
+\begin_layout Plain Layout
+
+			for c in calls do
+\end_layout
+
+\begin_layout Plain Layout
+
+				u2 = resultOf(Usages(c, pattern)) // that call is a def of another var
+\end_layout
+
+\begin_layout Plain Layout
+
+				result.addAll(u2)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -4161,11 +4793,230 @@ eval.
 \end_layout
 
 \begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Callers(node):
+\end_layout
+
+\begin_layout Plain Layout
+
+scope = resultOf(EnclosingMethodOrClosure(node)) // InstMethDef or SinglMethDef
+ or Block
+\end_layout
+
+\begin_layout Plain Layout
+
+result = []
+\end_layout
+
+\begin_layout Plain Layout
+
+if scope is InstMethDef or SinglMethDef
+\end_layout
+
+\begin_layout Plain Layout
+
+	self = resultOf(SelfType(node))
+\end_layout
+
+\begin_layout Plain Layout
+
+	calls = resultOf(GlobalCallsWith(scope.name))
+\end_layout
+
+\begin_layout Plain Layout
+
+	matching = []
+\end_layout
+
+\begin_layout Plain Layout
+
+	selfType = resultOf(SelfType(node))
+\end_layout
+
+\begin_layout Plain Layout
+
+	for c in calls do
+\end_layout
+
+\begin_layout Plain Layout
+
+		r = resultOf(Type(c.))
+\end_layout
+
+\begin_layout Plain Layout
+
+		if r.hasNonEmptyIntersectionWith(selfType)
+\end_layout
+
+\begin_layout Plain Layout
+
+			matching.add(c)
+\end_layout
+
+\begin_layout Plain Layout
+
+	result.addAll(matching)
+\end_layout
+
+\begin_layout Plain Layout
+
+if scope is Block
+\end_layout
+
+\begin_layout Plain Layout
+
+	parentCall = parentCall(scope)
+\end_layout
+
+\begin_layout Plain Layout
+
+	if passed to new Proc or Lambda
+\end_layout
+
+\begin_layout Plain Layout
+
+		usages = resultOf(Usages(parentCall, CallPattern)) // list of Calls
+\end_layout
+
+\begin_layout Plain Layout
+
+		result.addAll(usages)
+\end_layout
+
+\begin_layout Plain Layout
+
+	else
+\end_layout
+
+\begin_layout Plain Layout
+
+		resp = resultOf(Responders(parentCall))
+\end_layout
+
+\begin_layout Plain Layout
+
+		for r in resp do
+\end_layout
+
+\begin_layout Plain Layout
+
+			y = resultOf(YieldCalls(resp))
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.addAll(y)
+\end_layout
+
+\begin_layout Plain Layout
+
+			
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 // TODO
 \end_layout
 
 \begin_layout Subsubsection
 Вызываемый код
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ Responders(call node): // result is list of method defs or closures
+\end_layout
+
+\begin_layout Plain Layout
+
+result = []
+\end_layout
+
+\begin_layout Plain Layout
+
+if call is method call
+\end_layout
+
+\begin_layout Plain Layout
+
+	rt = resultOf(Type(call.receiver))
+\end_layout
+
+\begin_layout Plain Layout
+
+	resp = resultOf(GlobalDeclsWith(call.name))
+\end_layout
+
+\begin_layout Plain Layout
+
+	for r in resp do
+\end_layout
+
+\begin_layout Plain Layout
+
+		if rt.hasNonEmptyIntersectionWith(r.declaredType)
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.add(r)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if call is yield
+\end_layout
+
+\begin_layout Plain Layout
+
+	callers = resultOf(Callers(call))
+\end_layout
+
+\begin_layout Plain Layout
+
+	for c in callers do
+\end_layout
+
+\begin_layout Plain Layout
+
+		lastArg = c.lastArg
+\end_layout
+
+\begin_layout Plain Layout
+
+		if lastArg is Block
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.add(lastArg)
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
