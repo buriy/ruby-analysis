@@ -4338,6 +4338,22 @@ EmptyType
 \end_layout
 
 \begin_layout Standard
+Чтобы вычислить тип аргумента, нам необходимо понять, кто вызывает данный
+ метод.
+ Для этого сущесвует запрос 
+\emph on
+Callers
+\emph default
+ который будет рассмотрен далее.
+ Здесь нам достаточно считать, что по любой инструкции данный запрос возвращает
+ инструкции вызывающие окрущающий ее метод или замыкание.
+ После того, как нам станет известен список вызовов, для каждого вызова
+ мы вычисляем тип фактически переданного аргумента.
+ Все вычисленные таким образом типы складываются.
+ 
+\end_layout
+
+\begin_layout Standard
 \begin_inset listings
 inline false
 status open
@@ -4397,6 +4413,30 @@ for call in callers do
 \end_layout
 
 \begin_layout Standard
+Запрос 
+\emph on
+GlobalAssignmentsTo 
+\emph default
+нам уже позволяет получить список присваиваний переменной с заданным именем.
+ Таким образом, задача получается почти идентичная случаю с локальными переменны
+ми.
+ Однако, не факт, что все присваивания из списка соотвествуют именно искомой
+ переменной.
+ Поэтому дополнительно требуется проверить, что каждая переменная принадлежит
+ тому же классу, что и запрошенная.
+ 
+\end_layout
+
+\begin_layout Standard
+Операция 
+\emph on
+hasNonEmptyIntersectionWtih
+\emph default
+ отвечает на вопрос о том, возможно ли ситуация, что тип из одного описания
+ присутсвует в другом.
+\end_layout
+
+\begin_layout Standard
 \begin_inset listings
 inline false
 status open
@@ -4439,6 +4479,21 @@ for pd in possibleDefs do
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Для того, чтобы определить класс, которому соотвествует переменная, нам
+ также требуется дополнительный запрос о типе 
+\emph on
+self
+\emph default
+ в заданно месте программы.
+ Данный запрос вычисляется следующим образом (считаем, что его аргументом
+ является 
+\emph on
+node
+\emph default
+ — некоторая инструкция):
 \end_layout
 
 \begin_layout Standard
@@ -4493,7 +4548,13 @@ if meth is InstMethDef:
 
 \begin_layout Plain Layout
 
-	if meth.isInstanceMethod()
+	if meth.isInstanceMethod() 
+\end_layout
+
+\begin_layout Plain Layout
+
+// = resultOf(new Type(meth.var()).hasNonEmptyIntersectionWith(ClassTypeDescriptio
+n)
 \end_layout
 
 \begin_layout Plain Layout
@@ -4508,7 +4569,7 @@ if meth is InstMethDef:
 
 \begin_layout Plain Layout
 
-		includes = resultOf(new IncludesOf(def.instType()))
+		includes = resultOf(new IncludesOf(meth.var()))
 \end_layout
 
 \begin_layout Plain Layout
@@ -4528,6 +4589,19 @@ if meth is InstMethDef:
 
 \begin_layout Paragraph*
 Глобальная переменная или константа
+\end_layout
+
+\begin_layout Standard
+Вычисление глобальных переменных и констант аналогично вычислению локальных
+ переменных за исключением того, что мы используем запрос 
+\emph on
+GlobalAssignmentsTo
+\emph default
+ вместо 
+\emph on
+Defs
+\emph default
+.
 \end_layout
 
 \begin_layout Standard
@@ -4570,183 +4644,177 @@ for def in defs do
 \end_layout
 
 \begin_layout Standard
+TODO
+\end_layout
+
+\begin_layout Standard
 \begin_inset listings
 inline false
 status open
 
 \begin_layout Plain Layout
 
-rt = resultOf(Type(obj.receiver))
+rt = resultOf(new Type(obj.receiver))
 \end_layout
 
 \begin_layout Plain Layout
 
-	if rt.canBeArray and obj.name = "[]" {
+// специальная поддержка для массивов и хэшей
 \end_layout
 
 \begin_layout Plain Layout
 
-		defs = rt.extractDefs()
+if rt.canBeArray and obj.name = "[]" {
 \end_layout
 
 \begin_layout Plain Layout
 
-		values = []
+	defs = rt.defs()
 \end_layout
 
 \begin_layout Plain Layout
 
-		for d in defs do
+	values = []
 \end_layout
 
 \begin_layout Plain Layout
 
-			usages = Usages(d, ArrayStorePattern)
+	for d in defs do
 \end_layout
 
 \begin_layout Plain Layout
 
-			for u in usages do
+		usages = resultOf(new Usages(d, ArrayStorePattern))
 \end_layout
 
 \begin_layout Plain Layout
 
-				values.add(ArrayStorePattern.extractRHS(u))
+		for u in usages do
 \end_layout
 
 \begin_layout Plain Layout
 
-		types = EmptyType
+			values.add(ArrayStorePattern.extractRHS(u))
 \end_layout
 
 \begin_layout Plain Layout
 
-		for v in values do
+	result = new EmptyType()
 \end_layout
 
 \begin_layout Plain Layout
 
-			t = resultOf(Type(v))
+	for v in values do
 \end_layout
 
 \begin_layout Plain Layout
 
-			types.intersectWith(t)
+		t = resultOf(new Type(v))
 \end_layout
 
 \begin_layout Plain Layout
 
-		result = types
+		result = result + t
 \end_layout
 
 \begin_layout Plain Layout
 
-	} else if rt.canBeHash and obj.name = "[]" and obj.hasConstArg {
+} else if rt.canBeHash and obj.name = "[]" and obj.hasConstArg {
 \end_layout
 
 \begin_layout Plain Layout
 
-		defs = rt.extractDefs()
+	defs = rt.extractDefs()
 \end_layout
 
 \begin_layout Plain Layout
 
-		values = []
+	values = []
 \end_layout
 
 \begin_layout Plain Layout
 
-		for d in defs do
+	for d in defs do
 \end_layout
 
 \begin_layout Plain Layout
 
-			usages = Usages(d, HashStorePattern(constHashArg))
+		usages = resultOf(new Usages(d, HashStorePattern(constHashArg))
 \end_layout
 
 \begin_layout Plain Layout
 
-			for u in usages do
+		for u in usages do
 \end_layout
 
 \begin_layout Plain Layout
 
-				values.add(HashStorePattern(constHashArg).extractRHS(u))
+			values.add(HashStorePattern(constHashArg).extractRHS(u))
 \end_layout
 
 \begin_layout Plain Layout
 
-		types = EmptyType()
+	result = new EmptyType()
 \end_layout
 
 \begin_layout Plain Layout
 
-		for v in values do
+	for v in values do
 \end_layout
 
 \begin_layout Plain Layout
 
-			t = resultOf(Type(v))
+		t = resultOf(new Type(v))
 \end_layout
 
 \begin_layout Plain Layout
 
-			types.intersectWith(t)
+		result = result + t
 \end_layout
 
 \begin_layout Plain Layout
 
-		result = types
+} 
 \end_layout
 
 \begin_layout Plain Layout
 
-	} 
+methdefs = resultOf(new Responders(obj))
 \end_layout
 
 \begin_layout Plain Layout
 
-	methdefs = resultOf(Responders(obj))
+returnValues = []
 \end_layout
 
 \begin_layout Plain Layout
 
-	returnValues = []
+for m in methdefs do
 \end_layout
 
 \begin_layout Plain Layout
 
-	for m in methdefs do
+	returnValues.addAll(resultOf(new ReturnValues(m)))
 \end_layout
 
 \begin_layout Plain Layout
 
-		returnValues.addAll(resultOf(ReturnValues(m)))
+result = new EmptyType()
 \end_layout
 
 \begin_layout Plain Layout
 
-	types = EmptyType()
+for v in returnValues do
 \end_layout
 
 \begin_layout Plain Layout
 
-	for v in returnValues do
+	t = resultOf(new Type(v))
 \end_layout
 
 \begin_layout Plain Layout
 
-		t = resultOf(Type(v))
-\end_layout
-
-\begin_layout Plain Layout
-
-		types.intersectWith(t)
-\end_layout
-
-\begin_layout Plain Layout
-
-	result = types
+	result = result + t
 \end_layout
 
 \end_inset
@@ -4759,13 +4827,62 @@ rt = resultOf(Type(obj.receiver))
 \end_layout
 
 \begin_layout Standard
+TODO
+\end_layout
+
+\begin_layout Standard
 \begin_inset listings
 inline false
 status open
 
 \begin_layout Plain Layout
 
-adfasdfsfdasdfasdf
+result = new EmptyType()
+\end_layout
+
+\begin_layout Plain Layout
+
+callers = resultOf(Callers(obj))
+\end_layout
+
+\begin_layout Plain Layout
+
+returnValues = []
+\end_layout
+
+\begin_layout Plain Layout
+
+for c in callers do
+\end_layout
+
+\begin_layout Plain Layout
+
+	lastArg = c.lastArg
+\end_layout
+
+\begin_layout Plain Layout
+
+	if lastArg is Block
+\end_layout
+
+\begin_layout Plain Layout
+
+		r.addAll(resultOf(new ReturnValues(lastArg)))
+\end_layout
+
+\begin_layout Plain Layout
+
+for v in returnValues do
+\end_layout
+
+\begin_layout Plain Layout
+
+	t = resultOf(new Type(v))
+\end_layout
+
+\begin_layout Plain Layout
+
+	result = result + t
 \end_layout
 
 \end_inset
@@ -4775,6 +4892,10 @@ adfasdfsfdasdfasdf
 
 \begin_layout Subsubsection
 Использования
+\end_layout
+
+\begin_layout Standard
+TODO
 \end_layout
 
 \begin_layout Standard
@@ -4950,12 +5071,12 @@ if def.lhs is localvar {
 
 \end_layout
 
-\begin_layout Standard
-// TODO
-\end_layout
-
 \begin_layout Subsubsection
 Места вызова
+\end_layout
+
+\begin_layout Standard
+TODO
 \end_layout
 
 \begin_layout Standard
@@ -5093,10 +5214,6 @@ if scope is Block
 
 \end_layout
 
-\begin_layout Standard
-// TODO
-\end_layout
-
 \begin_layout Subsubsection
 Вызываемый код
 \end_layout
@@ -5183,10 +5300,6 @@ if call is yield
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-// TODO
 \end_layout
 
 \begin_layout Subsection
@@ -5292,6 +5405,14 @@ yield
 
 \begin_layout Subsection
 Реализация
+\end_layout
+
+\begin_layout Standard
+Стандартная библиотека
+\end_layout
+
+\begin_layout Standard
+Отсечения: по количеству запросов и по времени
 \end_layout
 
 \begin_layout Subsection
