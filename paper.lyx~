@@ -375,7 +375,7 @@ Ruby поддерживает несколько парадигм програм
 
 \begin_layout Standard
 \begin_inset Float algorithm
-placement h
+placement H
 wide false
 sideways false
 status open
@@ -940,13 +940,14 @@ DDP
 \begin_inset Formula $R$
 \end_inset
 
-, а также выбранный среди них файл 
-\begin_inset Formula $m\in R$
+, а также некоторый выбранный среди них файл, являющийся файлом, который
+ непосредственно передается интерпретатору Ruby в качестве входного, и с
+ которого начинается исполнение программы.
+ Этот файл может включать остальные с помощью команды 
+\begin_inset Formula $require$
 \end_inset
 
-, являющийся файлом, который непосредственно передается интерпретатору Ruby
- в качестве входного, и с которого начинается исполнение программы.
- Этот файл может включать остальные с помощью команды require.
+.
  
 \end_layout
 
@@ -970,41 +971,65 @@ DDP
 \end_layout
 
 \begin_layout Standard
-ОписаниеТипа := Тип (или Тип)* 
+
+\emph on
+Описание Типа := Тип (
+\begin_inset Formula $\vee$
+\end_inset
+
+ Тип)* 
 \end_layout
 
 \begin_layout Standard
-Тип := (Источник, Методы) 
+
+\emph on
+Тип := (Базовый Тип, Дополнительные Методы)
 \end_layout
 
 \begin_layout Standard
-Источник := <конкретное имя класса> 
+
+\emph on
+Базовый Тип := <конкретное имя класса> 
 \end_layout
 
 \begin_layout Standard
-Источник := <вызов метода new> 
+
+\emph on
+Базовый Тип := <вызов метода new> 
 \end_layout
 
 \begin_layout Standard
-Источник := <произвольный вызов с неизвестным возвращаемым типом> 
+
+\emph on
+Базовый Тип := <произвольный вызов с неизвестным возвращаемым типом> 
 \end_layout
 
 \begin_layout Standard
-Источник := <неопределенная переменная> 
+
+\emph on
+Базовый Тип := <неопределенная переменная> 
 \end_layout
 
 \begin_layout Standard
-Методы := Метод* 
+
+\emph on
+Дополнительные Методы := Метод* 
 \end_layout
 
 \begin_layout Standard
-Метод := <описание сигнатуры метода: имя и аргументы> 
+
+\emph on
+Метод := <описание сигнатуры метода: имя и аргументы>
+\emph default
+ 
 \end_layout
 
 \begin_layout Standard
 Описание типа должно соответствовать типам, которые может принимать указанная
  переменная в процессе работы программы.
- 
+ Заметим, что такое описание типа является достаточно полным для того, чтобы,
+ имея результат работа статического анализатора, делать заключения о его
+ надежности и возможных подсказках пользователю на его основе.
 \end_layout
 
 \begin_layout Section
@@ -3208,8 +3233,7 @@ status open
 
 \begin_layout Plain Layout
 
-procedure UpdateReachingDefs(CFG G, Node v, Map<Var, Node> reachingDefs)
- 
+procedure UpdateReachingDefs(G, v, reachingDefs) 
 \end_layout
 
 \begin_layout Plain Layout
@@ -3270,7 +3294,7 @@ procedure UpdateReachingDefs(CFG G, Node v, Map<Var, Node> reachingDefs)
 
 \begin_layout Plain Layout
 
-procedure BuildDefUse(CFG G)
+procedure BuildDefUse(G)
 \end_layout
 
 \begin_layout Plain Layout
