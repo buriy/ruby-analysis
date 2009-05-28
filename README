@@ -5,3 +5,4 @@ Toolkit for Ruby type analysis.
 Contents:
 
 runtime/ — runtime type information collector
+paper.pdf — a paper (in russian) describing the analysis
