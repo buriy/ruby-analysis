@@ -1205,11 +1205,11 @@ DDP
 \begin_layout Standard
 
 \emph on
-Описание Типа := Тип (
+Описание Типа := (Тип (
 \begin_inset Formula $\vee$
 \end_inset
 
- Тип)* 
+ Тип)*)?
 \end_layout
 
 \begin_layout Standard
@@ -1228,6 +1228,12 @@ DDP
 
 \emph on
 Базовый Тип := <вызов метода new> 
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Базовый Тип := <литерал> 
 \end_layout
 
 \begin_layout Standard
@@ -4132,7 +4138,6 @@ eval.
 \begin_layout Standard
 Вычисление перечисленных запросов требует поиска по инструкциям всей программы
  или некоторого определенного метода.
- На этом их особенности заканчиваются, и дальнейшее их вычисление тривиально.
  Однако, очевидно, что производить поиск каждый раз для каждого имени переменной
  неэффективно.
  Поэтому имеет смысл индексировать некоторые инструкции в программе, чтобы
@@ -4145,287 +4150,433 @@ eval.
 \end_layout
 
 \begin_layout Standard
+Данный запрос (на самом деле целый класс запросов), в общем виде можно описать
+ так: 
+\begin_inset Formula $Type(var|literal|call)\toОписаниеТипа$
+\end_inset
+
+, где 
+\begin_inset Formula $ОписаниеТипа$
+\end_inset
+
+ структура, соотвествующая формату, описанному в начале работы при постановке
+ формальной задачи.
+ 
+\end_layout
+
+\begin_layout Standard
+Нам потребуется операция сложения описаний типов, которая задается следующим
+ образом.
+ Если 
+\begin_inset Formula $О_{1}=Тип_{1}\vee\ldots\veeТип_{n}$
+\end_inset
+
+, 
+\begin_inset Formula $О_{2}=Тип_{n+1}\vee\ldots\veeТип_{n+k}$
+\end_inset
+
+, то 
+\begin_inset Formula $О_{1}+О_{2}=Тип_{1}\vee\ldots\veeТип_{n}\veeТип_{n+1}\vee\ldots\veeТип_{n+k}$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Будем рассматривать стратегии вычисления данного запроса в зависимости от
+ типа его аргумента.
+\end_layout
+
+\begin_layout Paragraph
+Литерал
+\end_layout
+
+\begin_layout Standard
+Если требуется вычислить тип литерала, то все просто: ответ будет состоять
+ из описания, состоящего из одного этого литерала.
+ 
+\end_layout
+
+\begin_layout Standard
 \begin_inset listings
 inline false
 status open
 
 \begin_layout Plain Layout
 
+class TypeGoal implements Goal<ОписаниеТипа> {
 \end_layout
 
 \begin_layout Plain Layout
 
-SelfType(node):
+	ОписаниеТипа result;
+\end_layout
+
+\begin_layout Plain Layout
+	
+Object obj;
 \end_layout
 
 \begin_layout Plain Layout
 
-	def = resultOf(EnclosingMethodOrClosure(node))
+	TypeGoal(Object obj) { this.obj = obj; }
 \end_layout
 
 \begin_layout Plain Layout
 
-	while def is Block
+	ОписаниеТипа result() { return result; }
 \end_layout
 
 \begin_layout Plain Layout
 
-		def = resultOf(EnclosingMethodOrClosure(def))
+	void evaluate(IAnalysisEngine engine) {
+\end_layout
+
+\begin_layout Plain Layout
+		
+if (obj is Literal)
 \end_layout
 
 \begin_layout Plain Layout
 
-	if SinglMethDef:
+			result = new ОписаниеТипа((Literal)obj);
 \end_layout
 
 \begin_layout Plain Layout
 
-		result = resultOf(Type(def.object))
+	}
 \end_layout
 
 \begin_layout Plain Layout
 
-	if InstMethDef:
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+В дальнейшем мы не будем писать весь этот код, а оставим только тело метода
+ 
+\emph on
+evaluate()
+\emph default
+.
+\end_layout
+
+\begin_layout Paragraph
+Локальная переменная
+\end_layout
+
+\begin_layout Standard
+Для вычисления типа локальной переменной мы прибегаем к поиску ее определений.
+ Найдя определения, мы создаем новый запросы о типе всех возможных правых
+ частей.
+ После чего складываем все типы.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+defs = resultOf(new Defs(obj))
 \end_layout
 
 \begin_layout Plain Layout
 
-		if def.isClassMethod()
+result = new EmptyType()
 \end_layout
 
 \begin_layout Plain Layout
 
-			result = def.instType()
+for def in defs do
 \end_layout
 
 \begin_layout Plain Layout
 
-		if def.isModuleMethod()
+	t = resultOf(new Type(def.rhs))
 \end_layout
 
 \begin_layout Plain Layout
 
-			includes = resultOf(IncludesOf(def.instType()))
+	result = result + t
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Здесь для краткости введено сокращение 
+\emph on
+resultOf(goal)
+\emph default
+ вместо 
+\emph on
+engine.goalResult(goal)
+\emph default
+.
+ Также можно заметить использование описания типа вида 
+\emph on
+EmptyType
+\emph default
+.
+ Данное описание пустое, и не содержит ни одного конкретного типа.
+ Данный ответ является ответом по-умолчанию для всех запросов о типе.
+\end_layout
+
+\begin_layout Paragraph*
+Аргумент метода или замыкания
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+result = new EmptyType()
 \end_layout
 
 \begin_layout Plain Layout
 
-			types = EmptyType();
+meth = resultOf(new EnclosingMethodOrClosure(obj))
 \end_layout
 
 \begin_layout Plain Layout
 
-			for i in includes do
+if meth == nil
 \end_layout
 
 \begin_layout Plain Layout
 
-				types.intersectWith(i.classInstType)
+	return
 \end_layout
 
 \begin_layout Plain Layout
 
-			result = types
+callers = resultOf(new Callers(obj))
 \end_layout
 
 \begin_layout Plain Layout
 
-Type(obj):
+for call in callers do	
 \end_layout
 
 \begin_layout Plain Layout
 
-if obj is literal:
+	arg = resultOf(new ActualArg(meth, obj.name, call))
 \end_layout
 
 \begin_layout Plain Layout
 
-	result = LiteralType(obj);
+	t = resultOf(newType(arg))
 \end_layout
 
 \begin_layout Plain Layout
 
+	result = result + t
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Переменная экземпляра или класса
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+possibleDefs = resultOf(new GlobalAssignmentsTo(obj.name))
 \end_layout
 
 \begin_layout Plain Layout
 
-if obj is localvar:
+self = resultOf(new SelfType(obj))
 \end_layout
 
 \begin_layout Plain Layout
 
-	defs = resultOf(Defs(obj))
+result = EmptyType()
 \end_layout
 
 \begin_layout Plain Layout
 
-	types = EmptyType()
+for pd in possibleDefs do
 \end_layout
 
 \begin_layout Plain Layout
 
-	for def in defs do
+	otherSelf = resultOf(new SelfType(pd.var))
 \end_layout
 
 \begin_layout Plain Layout
 
-		t = resultOf(Type(def.rhs))
+	if otherSelf.hasNonEmptyIntersectionWith(self)
 \end_layout
 
 \begin_layout Plain Layout
 
-		types.intersectWith(t)
+		result = result + resultOf(new Type(pd.rhs)))	
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+result = EmptyType()
 \end_layout
 
 \begin_layout Plain Layout
 
-	result = types
+meth = resultOf(new EnclosingMethodOrClosure(node))
 \end_layout
 
 \begin_layout Plain Layout
 
+while meth is Block
 \end_layout
 
 \begin_layout Plain Layout
 
-if obj is argument or block argument:
+	meth = resultOf(new EnclosingMethodOrClosure(def))
 \end_layout
 
 \begin_layout Plain Layout
 
-	callers = resultOf(Callers(obj))
+if meth == nil
 \end_layout
 
 \begin_layout Plain Layout
 
-	types = EmptyType()
+	return
 \end_layout
 
 \begin_layout Plain Layout
 
-	for call in callers do
+if meth is SinglMethDef:
 \end_layout
 
 \begin_layout Plain Layout
 
-		arg = resultOf(ActualArg(obj.name, call))
+	result = resultOf(new Type(def.object))
 \end_layout
 
 \begin_layout Plain Layout
 
-		t = resultOf(Type(arg))
+if meth is InstMethDef:
 \end_layout
 
 \begin_layout Plain Layout
 
-		types.intersectWith(t)
+	if meth.isInstanceMethod()
 \end_layout
 
 \begin_layout Plain Layout
 
-	result = types
+		result = meth.instType()
 \end_layout
 
 \begin_layout Plain Layout
 
+	if meth.isModuleMethod()
 \end_layout
 
 \begin_layout Plain Layout
 
-if obj is instance var or class var:
+		includes = resultOf(new IncludesOf(def.instType()))
 \end_layout
 
 \begin_layout Plain Layout
 
-	possibleDefs = resultOf(GlobalAssignmentsTo(obj.name))
+		for i in includes do
 \end_layout
 
 \begin_layout Plain Layout
 
-	self = resultOf(SelfType(obj))
+			result = result + i.classInstType
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph*
+Глобальная переменная или константа
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+defs = resultOf(new GlobalAssignmentsTo(obj.name))
 \end_layout
 
 \begin_layout Plain Layout
 
-	types = EmptyType()
+result = new EmptyType()
 \end_layout
 
 \begin_layout Plain Layout
 
-	for pd in possibleDefs do
+for def in defs do
 \end_layout
 
 \begin_layout Plain Layout
 
-		otherSelf = resultOf(SelfType(pd))
+	t = resultOf(new Type(def.rhs))
 \end_layout
 
 \begin_layout Plain Layout
 
-		if otherSelf.hasNonEmptyIntersectionWith(self)
+	result = result + t
 \end_layout
 
-\begin_layout Plain Layout
+\end_inset
 
-			types.intersectWith(resultOf(Type(pd.rhs)))
-\end_layout
-
-\begin_layout Plain Layout
-
-	result = types
-\end_layout
-
-\begin_layout Plain Layout
 
 \end_layout
 
-\begin_layout Plain Layout
-
-if obj is global var or constant:
+\begin_layout Paragraph
+Вызов метода
 \end_layout
 
-\begin_layout Plain Layout
-
-	defs = resultOf(GlobalAssignmentsTo(obj.name))
-\end_layout
-
-\begin_layout Plain Layout
-
-	types = EmptyType()
-\end_layout
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
 
 \begin_layout Plain Layout
 
-	for def in defs do
-\end_layout
-
-\begin_layout Plain Layout
-
-		t = resultOf(Type(def.rhs))
-\end_layout
-
-\begin_layout Plain Layout
-
-		types.intersectWith(t)
-\end_layout
-
-\begin_layout Plain Layout
-
-	result = types
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-if obj is method call:
-\end_layout
-
-\begin_layout Plain Layout
-
-	rt = resultOf(Type(obj.receiver))
+rt = resultOf(Type(obj.receiver))
 \end_layout
 
 \begin_layout Plain Layout
@@ -4595,7 +4746,203 @@ if obj is method call:
 
 \begin_layout Plain Layout
 
-	result = types 
+	result = types
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Вызов вида yield
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+adfasdfsfdasdfasdf
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Использования
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Usages(def, pattern):
+\end_layout
+
+\begin_layout Plain Layout
+
+result = []
+\end_layout
+
+\begin_layout Plain Layout
+
+if def.lhs is localvar {
+\end_layout
+
+\begin_layout Plain Layout
+
+	for d in resultOf(Defs(def.lhs)) do
+\end_layout
+
+\begin_layout Plain Layout
+
+		if pattern.matches(d)
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.add(d)
+\end_layout
+
+\begin_layout Plain Layout
+
+} else {
+\end_layout
+
+\begin_layout Plain Layout
+
+	usages = resultOf(GlobalUsagesOf(def.lhs.name))
+\end_layout
+
+\begin_layout Plain Layout
+
+	if def.lhs is instance or class var
+\end_layout
+
+\begin_layout Plain Layout
+
+		selfType = resultOf(SelfType(def))
+\end_layout
+
+\begin_layout Plain Layout
+
+	for u in usages do
+\end_layout
+
+\begin_layout Plain Layout
+
+		s = resultOf(SelfType(u))
+\end_layout
+
+\begin_layout Plain Layout
+
+		if !s.hasNonEmptyIntersectionWith(selfType)
+\end_layout
+
+\begin_layout Plain Layout
+
+			remove u from usages
+\end_layout
+
+\begin_layout Plain Layout
+
+	for u in usages do		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if pattern.matches
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.add(u)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if u is assignment from def.lhs to another var
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.addAll(resultOf(Usages(u, pattern)))
+\end_layout
+
+\begin_layout Plain Layout
+
+		if u is call and passed as argument
+\end_layout
+
+\begin_layout Plain Layout
+
+			resp = resultOf(Responders(u))
+\end_layout
+
+\begin_layout Plain Layout
+
+			for r in resp do
+\end_layout
+
+\begin_layout Plain Layout
+
+				ass = resultOf(InternalArg(argNo(u), r))
+\end_layout
+
+\begin_layout Plain Layout
+
+				u2 = resultOf(Usages(ass, pattern))
+\end_layout
+
+\begin_layout Plain Layout
+
+				result.addAll(u2)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if u returns
+\end_layout
+
+\begin_layout Plain Layout
+
+			calls = resultOf(Callers(u))
+\end_layout
+
+\begin_layout Plain Layout
+
+			for c in calls do
+\end_layout
+
+\begin_layout Plain Layout
+
+				u2 = resultOf(Usages(c, pattern)) // that call is a def of another var
+\end_layout
+
+\begin_layout Plain Layout
+
+				result.addAll(u2)
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \end_inset
@@ -4608,15 +4955,142 @@ if obj is method call:
 \end_layout
 
 \begin_layout Subsubsection
-Использования
+Места вызова
 \end_layout
 
 \begin_layout Standard
-// TODO
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
 \end_layout
 
-\begin_layout Subsubsection
-Места вызова
+\begin_layout Plain Layout
+
+Callers(node):
+\end_layout
+
+\begin_layout Plain Layout
+
+scope = resultOf(EnclosingMethodOrClosure(node)) // InstMethDef or SinglMethDef
+ or Block
+\end_layout
+
+\begin_layout Plain Layout
+
+result = []
+\end_layout
+
+\begin_layout Plain Layout
+
+if scope is InstMethDef or SinglMethDef
+\end_layout
+
+\begin_layout Plain Layout
+
+	self = resultOf(SelfType(node))
+\end_layout
+
+\begin_layout Plain Layout
+
+	calls = resultOf(GlobalCallsWith(scope.name))
+\end_layout
+
+\begin_layout Plain Layout
+
+	matching = []
+\end_layout
+
+\begin_layout Plain Layout
+
+	selfType = resultOf(SelfType(node))
+\end_layout
+
+\begin_layout Plain Layout
+
+	for c in calls do
+\end_layout
+
+\begin_layout Plain Layout
+
+		r = resultOf(Type(c.))
+\end_layout
+
+\begin_layout Plain Layout
+
+		if r.hasNonEmptyIntersectionWith(selfType)
+\end_layout
+
+\begin_layout Plain Layout
+
+			matching.add(c)
+\end_layout
+
+\begin_layout Plain Layout
+
+	result.addAll(matching)
+\end_layout
+
+\begin_layout Plain Layout
+
+if scope is Block
+\end_layout
+
+\begin_layout Plain Layout
+
+	parentCall = parentCall(scope)
+\end_layout
+
+\begin_layout Plain Layout
+
+	if passed to new Proc or Lambda
+\end_layout
+
+\begin_layout Plain Layout
+
+		usages = resultOf(Usages(parentCall, CallPattern)) // list of Calls
+\end_layout
+
+\begin_layout Plain Layout
+
+		result.addAll(usages)
+\end_layout
+
+\begin_layout Plain Layout
+
+	else
+\end_layout
+
+\begin_layout Plain Layout
+
+		resp = resultOf(Responders(parentCall))
+\end_layout
+
+\begin_layout Plain Layout
+
+		for r in resp do
+\end_layout
+
+\begin_layout Plain Layout
+
+			y = resultOf(YieldCalls(resp))
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.addAll(y)
+\end_layout
+
+\begin_layout Plain Layout
+
+			
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -4628,6 +5102,90 @@ if obj is method call:
 \end_layout
 
 \begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ Responders(call node): // result is list of method defs or closures
+\end_layout
+
+\begin_layout Plain Layout
+
+result = []
+\end_layout
+
+\begin_layout Plain Layout
+
+if call is method call
+\end_layout
+
+\begin_layout Plain Layout
+
+	rt = resultOf(Type(call.receiver))
+\end_layout
+
+\begin_layout Plain Layout
+
+	resp = resultOf(GlobalDeclsWith(call.name))
+\end_layout
+
+\begin_layout Plain Layout
+
+	for r in resp do
+\end_layout
+
+\begin_layout Plain Layout
+
+		if rt.hasNonEmptyIntersectionWith(r.declaredType)
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.add(r)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if call is yield
+\end_layout
+
+\begin_layout Plain Layout
+
+	callers = resultOf(Callers(call))
+\end_layout
+
+\begin_layout Plain Layout
+
+	for c in callers do
+\end_layout
+
+\begin_layout Plain Layout
+
+		lastArg = c.lastArg
+\end_layout
+
+\begin_layout Plain Layout
+
+		if lastArg is Block
+\end_layout
+
+\begin_layout Plain Layout
+
+			result.add(lastArg)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 // TODO
 \end_layout
 
@@ -4636,36 +5194,77 @@ if obj is method call:
 \end_layout
 
 \begin_layout Standard
-Для оптимизации поиска в процессе глобального анализа, имеет смысл хранить
- следующие структуры данных:
+Многие атомарные запросы для своего вычисления требуют просмотра всей программы
+ в поисках инструкций, соотвествующих каким-либо критериям.
+ Например, все присванивания какому-либо имени.
+ Чтобы сделать вычисление таких запросов быстрым, имеет смысл предварительно
+ вычислять следующие данные:
 \end_layout
 
 \begin_layout Itemize
 Для каждого имени глобальной переменной, поля, переменной класса и константы
- — все присваивания в программе переменной с таким именем.
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+все присваивания в программе переменной с таким именем;
 \end_layout
 
 \begin_layout Itemize
-Для каждого имени глобальной переменной, поля, переменной класса и константы
- — все инструкции в программе, использующие перменные с таким именем.
+все инструкции в программе, использующие перменные с таким именем;
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Для каждого имени метода 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+список инструкций в программе, которые вызывают метод с таким именем;
 \end_layout
 
 \begin_layout Itemize
-Для каждого имени метода список инструкций в программе, которые вызывают
- метод с таким именем.
-\end_layout
-
-\begin_layout Itemize
-Для каждого имени метода список инструкций в программе, определеляющих метод
- с таким именем.
- 
+список инструкций в программе, определеляющих метод с таким именем;
 \end_layout
 
 \begin_layout Standard
-Списки использований и присваиваний переменным строятся очевидным образом
- 
+(также имеет смысл хранить список всех вызовов 
+\emph on
+define_method)
 \end_layout
 
+\end_deeper
+\begin_layout Itemize
+Для каждого имени модуля список инструкций 
+\emph on
+Include
+\emph default
+ примешивающих данный модуль;
+\end_layout
+
+\begin_layout Itemize
+Для каждого определения класса опредеделение его родительского класса;
+\end_layout
+
+\begin_layout Itemize
+Для каждого определения метода или замыкания
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+список возвращаемых переменных;
+\end_layout
+
+\begin_layout Itemize
+список вызовов 
+\emph on
+yield
+\emph default
+.
+\end_layout
+
+\end_deeper
 \begin_layout Section
 Результаты и эксперименты
 \end_layout
