@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Core Plug-in
+Bundle-SymbolicName: com.yoursway.sadr.newruby.core
+Bundle-Version: 1.0.0
+Bundle-Vendor: YOURSWAY
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Require-Bundle: com.yoursway.sadr.ddp;bundle-version="1.0.0"
