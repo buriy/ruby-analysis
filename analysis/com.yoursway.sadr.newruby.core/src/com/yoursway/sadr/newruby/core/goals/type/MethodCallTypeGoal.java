@@ -7,6 +7,7 @@ import com.yoursway.sadr.newruby.core.goals.atomic.ReturnValues;
 import com.yoursway.sadr.newruby.core.goals.other.RespondersGoal;
 import com.yoursway.sadr.newruby.core.ir.MethodCall;
 import com.yoursway.sadr.newruby.core.ir.VariableReference;
+import com.yoursway.sadr.newruby.core.ir.cfgnodes.Assignment;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.Callable;
 import com.yoursway.sadr.newruby.core.types.TypeDescription;
 
@@ -35,9 +36,9 @@ public class MethodCallTypeGoal extends TypeGoal {
 
 	private void handleCollections() {
 		TypeDescription receiverType = resultOf(TypeGoal.create(call.receiver()));
+		List<Assignment> defs = receiverType.defs();
 		
 		if (receiverType.canBeArray() && call.selector().equals("[]")) {
-			
 		} 
 		
 		if (receiverType.canBeHash() && call.selector().equals("[]") && call.hasSingleLiteralArgument()) {

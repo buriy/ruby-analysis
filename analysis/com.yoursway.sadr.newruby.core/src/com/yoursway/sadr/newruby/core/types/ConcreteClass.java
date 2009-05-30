@@ -1,6 +1,5 @@
 package com.yoursway.sadr.newruby.core.types;
 
-import com.yoursway.sadr.newruby.core.ir.cfgnodes.Assignment;
 
 public class ConcreteClass implements TypeBase {
 
@@ -12,10 +11,6 @@ public class ConcreteClass implements TypeBase {
 
 	public String name() {
 		return name;
-	}
-
-	public Assignment def() {
-		return null;
 	}
 	
 }

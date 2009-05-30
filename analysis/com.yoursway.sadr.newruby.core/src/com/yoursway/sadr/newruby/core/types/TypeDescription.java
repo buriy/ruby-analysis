@@ -1,7 +1,5 @@
 package com.yoursway.sadr.newruby.core.types;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,15 +43,10 @@ public class TypeDescription {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
-	public Collection<Assignment> defs() {
-		List<Assignment> res = new ArrayList<Assignment>();
-		for (Type t : types) {
-			Assignment d = t.base().def();
-			if (d != null)
-				res.add(d);
-		}
-		return res;
+
+	public List<Assignment> defs() {
+		// TODO
+		return null;
 	}
-	
+
 }
