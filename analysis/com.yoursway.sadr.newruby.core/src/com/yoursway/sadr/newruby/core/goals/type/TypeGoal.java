@@ -37,7 +37,7 @@ public abstract class TypeGoal extends AbstractGoal<TypeDescription> {
 
 	public static TypeGoal create(VariableReference var) {
 		if (var instanceof SelfReference) {
-
+		
 		} else if (var instanceof LocalVarReference) {
 
 		} else if (var instanceof InstanceVarReference

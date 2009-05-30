@@ -45,7 +45,7 @@ public class MethodCall extends Call {
 		return receiver;
 	}
 
-	public String selector() {
+	public String name() {
 		return selector;
 	}
 

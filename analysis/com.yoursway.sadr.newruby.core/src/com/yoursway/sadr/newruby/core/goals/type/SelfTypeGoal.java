@@ -7,6 +7,7 @@ import com.yoursway.sadr.newruby.core.goals.atomic.EnclosingMethod;
 import com.yoursway.sadr.newruby.core.goals.atomic.IncludesOf;
 import com.yoursway.sadr.newruby.core.ir.ConstantReference;
 import com.yoursway.sadr.newruby.core.ir.VariableReference;
+import com.yoursway.sadr.newruby.core.ir.cfgnodes.Callable;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.FileLevelCallable;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.IncludeInstruction;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.InstanceMethodDefinition;
@@ -32,6 +33,10 @@ public class SelfTypeGoal extends TypeGoal {
 		result = new TypeDescription();
 	}
 	
+	public SelfTypeGoal(Callable callable) {
+		throw new ToBeImplementedByFourdmanException();
+	}
+
 	@Override
 	protected void evaluate() {
 		MethodDeclaration method = null;

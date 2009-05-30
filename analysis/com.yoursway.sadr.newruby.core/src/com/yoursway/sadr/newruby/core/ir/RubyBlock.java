@@ -20,4 +20,8 @@ public class RubyBlock extends CodeBlock implements Callable {
 		cfg().setFrom(blockCFG);
 	}
 
+	public Call parentCall() {
+		throw new ToBeImplementedByFourdmanException();
+	}
+
 }

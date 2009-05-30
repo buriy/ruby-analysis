@@ -29,7 +29,7 @@ public class InstanceMethodDefinition implements CFGNode, MethodDeclaration {
 		return classDefinition;
 	}
 
-	public String methodName() {
+	public String name() {
 		return methodName;
 	}
 

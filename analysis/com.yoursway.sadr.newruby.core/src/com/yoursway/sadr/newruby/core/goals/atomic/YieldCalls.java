@@ -5,7 +5,9 @@ import java.util.List;
 
 import com.yoursway.sadr.ddp.AbstractGoal;
 import com.yoursway.sadr.newruby.core.ir.Call;
+import com.yoursway.sadr.newruby.core.ir.cfgnodes.Callable;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.InstanceMethodDefinition;
+import com.yoursway.sadr.newruby.core.ir.cfgnodes.MethodDeclaration;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.SingletonMethodDefinition;
 
 public class YieldCalls extends AbstractGoal<List<Call>> {
@@ -13,8 +15,8 @@ public class YieldCalls extends AbstractGoal<List<Call>> {
 	private final InstanceMethodDefinition def;
 	private final SingletonMethodDefinition def2;
 
-	public YieldCalls(InstanceMethodDefinition def) {
-		this.def = def;
+	public YieldCalls(MethodDeclaration r) {
+		this.def = r;
 		def2 = null;
 		result = new ArrayList<Call>();
 	}

@@ -23,7 +23,7 @@ public class SingletonMethodDefinition implements CFGNode, MethodDeclaration {
 		this.code = code;
 	}
 
-	public String methodName() {
+	public String name() {
 		return methodName;
 	}
 

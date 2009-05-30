@@ -224,13 +224,13 @@ public class AstToCFGTransformer {
 		if (call instanceof MethodCall) {
 			MethodCall methodCall = (MethodCall) call;
 			if (methodCall.receiver() == null
-					&& methodCall.selector().equals("require")) {
+					&& methodCall.name().equals("require")) {
 				builder.appendNode(new RequireInstruction(methodCall
 						.arguments().get(0)));
 				return true;
 			}
 			if (methodCall.receiver() == null
-					&& methodCall.selector().equals("include")) {
+					&& methodCall.name().equals("include")) {
 				builder.appendNode(new IncludeInstruction(methodCall
 						.arguments().get(0)));
 				return true;
