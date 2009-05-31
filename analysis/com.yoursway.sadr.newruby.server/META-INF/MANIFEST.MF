@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Server Plug-in
+Bundle-SymbolicName: com.yoursway.sadr.newruby.server
+Bundle-Version: 1.0.0
+Bundle-Vendor: YOURSWAY
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Require-Bundle: com.yoursway.sadr.newruby.core;bundle-version="1.0.0",
+ com.yoursway.utils;bundle-version="1.0.0",
+ com.yoursway.fsmonitor;bundle-version="1.0.0"
