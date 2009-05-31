@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +48,7 @@ public class Project {
 		this.context = new FileSystemMonitoringContext();
 		this.settings_monitor = createSettingsMonitor(root);
 		
-		loadSettings();
+		paths = getSettings();
 		addBuildPaths();
 	}
 
@@ -83,6 +84,11 @@ public class Project {
 		followBuildPath(path);
 	}
 
+	private void removeBuildPath(String path) {
+		unloadFiles(path);
+		unfollowPath(path);
+	}
+
 	private void loadFiles(String path) {
 		List<String> files = YsPathUtils.findFiles(path, rubyFilter);
 		for(String file: files){
@@ -91,15 +97,11 @@ public class Project {
 	}
 	
 	private void loadFile(String file) {
+		System.err.println("Loading file:"+ file);
 		completer.loadFile(file);
 		projectFiles.add(file);
 	}
 	
-	private void removeBuildPath(String path) {
-		unloadFiles(path);
-		unfollowPath(path);
-	}
-
 	private void unloadFiles(String path) {
 		ArrayList<String> toRemove = filterByPrefix(projectFiles, expandPath(path));
 		for(String file: toRemove){
@@ -108,17 +110,9 @@ public class Project {
 	}
 
 	private void unloadFile(String file) {
+		System.err.println("Unloading file:"+ file);
 		completer.unloadFile(file);
 		projectFiles.remove(file);
-	}
-
-	private ArrayList<String> filterByPrefix(List<String> files, String prefix){
-		ArrayList<String> output = new ArrayList<String>();
-		for (String file : files) {
-			if(file.startsWith(prefix))
-				output.add(file);
-		}
-		return output;
 	}
 
 	private void followBuildPath(String path) {
@@ -140,7 +134,7 @@ public class Project {
 		monitor.dispose();
 	}
 	
-	private List<String> loadSettings() throws FileNotFoundException, IOException {
+	private List<String> getSettings() throws FileNotFoundException, IOException {
 		paths = new ArrayList<String>();
 		BufferedReader br = new BufferedReader(new FileReader(this.root+SETTINGS));
 		String line;
@@ -156,7 +150,7 @@ public class Project {
 	public boolean reloadSettings(){
 		List<String> oldPaths = paths;
 		try {
-			paths = loadSettings();
+			paths = getSettings();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return false; // reload failed
@@ -165,9 +159,8 @@ public class Project {
 			if(oldPaths.contains(path)){
 				oldPaths.remove(path);
 			}else{
-				followBuildPath(path);
+				addBuildPath(path);
 			}
-			addBuildPath(path);
 		}
 		for(String path: oldPaths){
 			removeBuildPath(path);
@@ -175,7 +168,22 @@ public class Project {
 		return true;
 	}
 
-	private String expandPath(String path) {
+	public void complete(CompletionCommand command, CompletionProposalAcceptor acceptor) {
+		String file = command.get(CompletionCommand.OPT_FILE);
+		String position = command.get(CompletionCommand.OPT_POSITION);
+		completer.complete(file, Integer.parseInt(position), acceptor);
+	}
+
+	private static ArrayList<String> filterByPrefix(Collection<String> files, String prefix){
+		ArrayList<String> output = new ArrayList<String>();
+		for (String file : files) {
+			if(file.startsWith(prefix))
+				output.add(file);
+		}
+		return output;
+	}
+
+	private static String expandPath(String path) {
 		File file = new File(path);
 		if(file.isDirectory()) {
 			return file.getAbsolutePath() + "/";
@@ -184,9 +192,4 @@ public class Project {
 		}
 	}
 
-	public void complete(CompletionCommand command, CompletionProposalAcceptor acceptor) {
-		String file = command.get(CompletionCommand.OPT_FILE);
-		String position = command.get(CompletionCommand.OPT_POSITION);
-		completer.complete(file, Integer.parseInt(position), acceptor);
-	}
 }

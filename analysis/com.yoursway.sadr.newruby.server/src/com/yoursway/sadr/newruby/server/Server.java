@@ -24,6 +24,11 @@ public class Server {
 		startServer();
 	}
 	
+	public void dispose() {
+		if(project != null)
+			project.dispose();
+	}
+	
 	private void loadProject() {
 		try {
 			project = new Project(root);
@@ -46,11 +51,13 @@ public class Server {
 		    	OutputStreamWriter writer = new OutputStreamWriter(stream);
 		    	writer.write(output);
 		    	writer.close();
+		    	client.close();
 		    }
 		} catch (IOException e) {
 		    System.out.println("Could not listen on port: "+port);
 		    System.exit(-1);
 		}
+		dispose();
 	}
 	
 	private String run(Command command) {
@@ -62,9 +69,8 @@ public class Server {
 			CompletionCommand completionCommand = (CompletionCommand) command;
 			System.out.println(command);
 			final StringBuilder builder = new StringBuilder();
-			final List<String> results = new ArrayList<String>();
 			project.complete(completionCommand, new CompletionProposalAcceptor(){
-				void addResult(String result, String description){
+				public void addResult(String result, String description){
 					builder.append(result+"\t"+description+"\n");
 					System.out.println("Result:"+result+"\t"+description);
 				}
@@ -75,12 +81,12 @@ public class Server {
 	}
 
 	public static void main(String[] args) {
-		if(args.length<2){
+		if(args.length<1){
 			System.err.println("Usage: server <project_root> [<port>]");
 		}else{
-			String root = args[1];
-			if(args.length>2){
-				server = new Server(root, Integer.parseInt(args[0]));
+			String root = args[0];
+			if(args.length>1){
+				server = new Server(root, Integer.parseInt(args[1]));
 			}else{
 				server = new Server(root, DEFAULT_PORT);
 			}
