@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.yoursway.sadr.newruby.core.cfg.CFGNode;
+
 
 public class MethodCall extends Call {
 	
@@ -64,6 +66,16 @@ public class MethodCall extends Call {
 	public boolean hasSingleLiteralArgument() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public RubyBlock passedBlock() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void visit(IRVisitor visitor) {
+		visitor.visitMethodCall(this);
 	}
 	
 }

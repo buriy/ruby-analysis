@@ -3,9 +3,9 @@ package com.yoursway.sadr.newruby.core.goals.atomic;
 import com.yoursway.sadr.ddp.AbstractGoal;
 import com.yoursway.sadr.newruby.core.cfg.CFGNode;
 import com.yoursway.sadr.newruby.core.ir.VariableReference;
-import com.yoursway.sadr.newruby.core.ir.cfgnodes.MethodDeclaration;
+import com.yoursway.sadr.newruby.core.ir.cfgnodes.MethodDefinition;
 
-public class EnclosingMethod extends AbstractGoal<MethodDeclaration> {
+public class EnclosingMethod extends AbstractGoal<MethodDefinition> {
 
 	private final CFGNode node;
 

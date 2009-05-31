@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class Index<K, V> {
+public class Index<K, V> {
 
 	protected Map<K, Collection<IndexEntry<V>>> map = new HashMap<K, Collection<IndexEntry<V>>>();
 

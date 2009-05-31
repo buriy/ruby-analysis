@@ -1,6 +1,6 @@
 package com.yoursway.sadr.newruby.core.ir.cfgnodes;
 
-public interface MethodDeclaration extends Callable {
+public interface MethodDefinition extends Callable {
 
 	String name();
 

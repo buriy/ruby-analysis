@@ -11,7 +11,7 @@ import com.yoursway.sadr.newruby.core.goals.type.TypeGoal;
 import com.yoursway.sadr.newruby.core.ir.Call;
 import com.yoursway.sadr.newruby.core.ir.RubyBlock;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.Callable;
-import com.yoursway.sadr.newruby.core.ir.cfgnodes.MethodDeclaration;
+import com.yoursway.sadr.newruby.core.ir.cfgnodes.MethodDefinition;
 import com.yoursway.sadr.newruby.core.types.TypeDescription;
 
 public class CallersGoal extends AbstractGoal<List<Call>> {
@@ -26,8 +26,8 @@ public class CallersGoal extends AbstractGoal<List<Call>> {
 	@Override
 	protected void evaluate() {
 		result = new ArrayList<Call>();
-		if (callable instanceof MethodDeclaration){
-		    MethodDeclaration declaration = (MethodDeclaration) callable;
+		if (callable instanceof MethodDefinition){
+		    MethodDefinition declaration = (MethodDefinition) callable;
 			TypeDescription selfType = resultOf(new SelfTypeGoal(declaration));
 		    List<Call> calls = resultOf(new GlobalCallsWith(declaration.name()));
 		    ArrayList<Call> matching = new ArrayList<Call>();
@@ -49,8 +49,8 @@ public class CallersGoal extends AbstractGoal<List<Call>> {
 		    } else {
 		        List<Callable> resp = resultOf(new RespondersGoal(parentCall));
 		        for (Callable r: resp) {
-		        	if(r instanceof MethodDeclaration) {
-		        		List<Call> y = resultOf(new YieldCalls((MethodDeclaration) r));
+		        	if(r instanceof MethodDefinition) {
+		        		List<Call> y = resultOf(new YieldCalls((MethodDefinition) r));
 		        		result.addAll(y);
 		            }
 		        }

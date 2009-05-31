@@ -1,14 +1,17 @@
 package com.yoursway.sadr.newruby.core.ir.cfgnodes;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 import com.yoursway.sadr.newruby.core.cfg.CFGNode;
 import com.yoursway.sadr.newruby.core.ir.CodeBlock;
+import com.yoursway.sadr.newruby.core.ir.IRVisitor;
+import com.yoursway.sadr.newruby.core.ir.LocalVarReference;
 import com.yoursway.sadr.newruby.core.ir.MethodArguments;
 import com.yoursway.sadr.newruby.core.ir.VariableReference;
 
-public class SingletonMethodDefinition implements CFGNode, MethodDeclaration {
+public class SingletonMethodDefinition implements CFGNode, MethodDefinition {
 
 	private final VariableReference object;
 	private final String methodName;
@@ -42,5 +45,14 @@ public class SingletonMethodDefinition implements CFGNode, MethodDeclaration {
 	public VariableReference extendedObject() {
 		return object;
 	}
-	
+
+	public void visit(IRVisitor visitor) {
+		visitor.visitSingletonMethodDefinition(this);
+		code.visit(visitor);
+	}
+
+	public void index() {
+		
+	}
+
 }

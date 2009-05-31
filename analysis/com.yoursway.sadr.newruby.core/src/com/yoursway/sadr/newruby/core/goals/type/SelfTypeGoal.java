@@ -11,7 +11,7 @@ import com.yoursway.sadr.newruby.core.ir.cfgnodes.Callable;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.FileLevelCallable;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.IncludeInstruction;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.InstanceMethodDefinition;
-import com.yoursway.sadr.newruby.core.ir.cfgnodes.MethodDeclaration;
+import com.yoursway.sadr.newruby.core.ir.cfgnodes.MethodDefinition;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.ModuleMethodDefinition;
 import com.yoursway.sadr.newruby.core.ir.cfgnodes.SingletonMethodDefinition;
 import com.yoursway.sadr.newruby.core.types.ConcreteClass;
@@ -39,7 +39,7 @@ public class SelfTypeGoal extends TypeGoal {
 
 	@Override
 	protected void evaluate() {
-		MethodDeclaration method = null;
+		MethodDefinition method = null;
 		if (var != null)
 			method = resultOf(new EnclosingMethod(var));
 		else if (node  != null)

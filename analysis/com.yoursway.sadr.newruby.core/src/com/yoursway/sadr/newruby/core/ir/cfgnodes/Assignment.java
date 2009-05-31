@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.yoursway.sadr.newruby.core.cfg.CFGNode;
 import com.yoursway.sadr.newruby.core.ir.IRRHS;
+import com.yoursway.sadr.newruby.core.ir.IRVisitor;
 import com.yoursway.sadr.newruby.core.ir.VariableReference;
 
 public class Assignment implements CFGNode {
@@ -26,6 +27,11 @@ public class Assignment implements CFGNode {
 
 	public VariableReference lhs() {
 		return lhs;
+	}
+
+	public void visit(IRVisitor visitor) {
+		visitor.visitAssignement(this);
+		rhs.visit(visitor);
 	}
 
 }

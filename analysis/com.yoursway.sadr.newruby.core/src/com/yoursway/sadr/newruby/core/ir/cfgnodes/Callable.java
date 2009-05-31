@@ -1,5 +1,7 @@
 package com.yoursway.sadr.newruby.core.ir.cfgnodes;
 
-public interface Callable {
+public interface Callable extends LocalVariablesContainter {
 
+	
+	
 }

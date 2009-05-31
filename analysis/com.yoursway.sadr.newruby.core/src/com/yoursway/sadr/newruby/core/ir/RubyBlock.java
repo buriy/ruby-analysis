@@ -23,5 +23,14 @@ public class RubyBlock extends CodeBlock implements Callable {
 	public Call parentCall() {
 		throw new ToBeImplementedByFourdmanException();
 	}
+	
+	public void visit(IRVisitor visitor) {
+		visitor.visitRubyBlock(this);
+		super.visit(visitor);
+	}
+
+	public void index() {
+		
+	}
 
 }

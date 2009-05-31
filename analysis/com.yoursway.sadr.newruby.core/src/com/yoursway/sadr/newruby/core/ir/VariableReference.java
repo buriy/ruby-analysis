@@ -6,17 +6,21 @@ import java.util.Set;
 public abstract class VariableReference implements IRRHS {
 
 	private final String name;
-	
+
 	public VariableReference(String name) {
 		this.name = name;
 	}
-	
+
 	public Set<VariableReference> uses() {
 		return Collections.singleton(this);
 	}
-	
+
 	public String name() {
 		return name;
 	}
-	
+
+	public void visit(IRVisitor visitor) {
+		visitor.visitVariable(this);
+	}
+
 }

@@ -5,5 +5,8 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jruby_trunk"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/com.google.collections"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/com.yoursway.sadr.ddp"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/com.yoursway.utils"/>
+	<classpathentry kind="lib" path="/jruby_trunk/build_lib/bytelist-1.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

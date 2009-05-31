@@ -1,6 +1,7 @@
 package com.yoursway.sadr.newruby.core.ir.cfgnodes;
 
 import com.yoursway.sadr.newruby.core.cfg.CFGNode;
+import com.yoursway.sadr.newruby.core.ir.IRVisitor;
 import com.yoursway.sadr.newruby.core.ir.Literal;
 import com.yoursway.sadr.newruby.core.ir.VariableReference;
 
@@ -12,6 +13,10 @@ public class RequireInstruction extends AbstractSingleArgumentThing implements C
 
 	public RequireInstruction(VariableReference var) {
 		super(var);
+	}
+
+	public void visit(IRVisitor visitor) {
+		visitor.visitRequire(this);
 	}
 
 }

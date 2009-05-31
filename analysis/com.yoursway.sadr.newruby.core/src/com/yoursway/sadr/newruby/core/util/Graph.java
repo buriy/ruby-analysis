@@ -1,5 +1,6 @@
 package com.yoursway.sadr.newruby.core.util;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -67,6 +68,11 @@ public class Graph<T> {
 		this.exitPoint = result.exitPoint;
 		this.preds = result.preds;
 		this.succs = result.succs;
+	}
+
+	public Collection<T> nodes() {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

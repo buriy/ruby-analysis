@@ -2,6 +2,7 @@ package com.yoursway.sadr.newruby.core.ir.cfgnodes;
 
 import com.yoursway.sadr.newruby.core.cfg.CFGNode;
 import com.yoursway.sadr.newruby.core.ir.ConstantReference;
+import com.yoursway.sadr.newruby.core.ir.IRVisitor;
 import com.yoursway.sadr.newruby.core.ir.Literal;
 import com.yoursway.sadr.newruby.core.ir.VariableReference;
 
@@ -18,6 +19,10 @@ public class IncludeInstruction extends AbstractSingleArgumentThing implements
 
 	public ConstantReference extendedClass() {
 		return null; // TODO
+	}
+
+	public void visit(IRVisitor visitor) {
+		visitor.visitInclude(this);
 	}
 	
 }

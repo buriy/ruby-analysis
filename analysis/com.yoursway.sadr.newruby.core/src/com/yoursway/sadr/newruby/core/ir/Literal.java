@@ -18,4 +18,8 @@ public class Literal implements IRRHS {
 		this.node = n;
 	}
 
+	public void visit(IRVisitor visitor) {
+		visitor.visitLiteral(this);
+	}
+
 }

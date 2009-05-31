@@ -16,7 +16,11 @@ public class DDPEngine {
 
 	private boolean running = false;
 	
-	FileChangesProcessor fileChangesProcessor = new FileChangesProcessor(this);
+	private FileChangesProcessor fileChangesProcessor;
+	
+	public DDPEngine(long timelimit) {
+		pruner.timelimit = timelimit;
+	}
 	
 	class Pruner {
 		
@@ -28,6 +32,8 @@ public class DDPEngine {
 		}
 		
 		boolean doPrunings() {
+			if (timelimit == -1)
+				return false;
 			long timeMillis = System.currentTimeMillis();
 			if (timeMillis - startTime > timelimit) {
 				// kill'em all!
@@ -59,7 +65,7 @@ public class DDPEngine {
 			}
 			deps.add(accessingGoal);
 			
-			if (goal instanceof IFileDependant)
+			if (goal instanceof IFileDependant && fileChangesProcessor != null)
 				fileChangesProcessor.addGoalDependency(goal, ((IFileDependant) goal).fileName());
 			
 			if (pruned.containsKey(goal)) {
@@ -149,6 +155,11 @@ public class DDPEngine {
 		pruned.remove(goal);
 		for (Goal<?> g : goalsNeeding(goal, true))
 			wipe(g);
+	}
+
+
+	public void setFileChangesProcessor(FileChangesProcessor fileChangesProcessor) {
+		this.fileChangesProcessor = fileChangesProcessor;
 	}
 	
 }

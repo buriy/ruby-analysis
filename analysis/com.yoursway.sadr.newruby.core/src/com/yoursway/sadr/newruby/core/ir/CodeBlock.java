@@ -21,5 +21,11 @@ public class CodeBlock {
 	public Node ast() {
 		return ast;
 	}
+
+	public void visit(IRVisitor visitor) {
+		for (CFGNode n : cfg().nodes()) {
+			n.visit(visitor);
+		}
+	}
 	
 }
