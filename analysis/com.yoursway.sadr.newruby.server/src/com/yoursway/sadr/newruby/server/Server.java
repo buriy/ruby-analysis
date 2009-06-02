@@ -16,12 +16,19 @@ public class Server {
 	private Project project;
 	private final int port;
 	private final String root;
+	private Thread serverThread;
 
 	public Server(String root, int port) {
 		this.root = root;
 		this.port = port;
 		loadProject();
-		startServer();
+		serverThread = new Thread(){
+			public void run() {
+				startServer();
+			};
+		};
+		serverThread.start();
+		project.run();
 	}
 	
 	public void dispose() {
@@ -34,6 +41,7 @@ public class Server {
 			project = new Project(root);
 		} catch (IOException e) {
 			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 

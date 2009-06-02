@@ -11,5 +11,5 @@ public interface Completer {
 	 */
 	void unloadFile(String file);
 	
-	void complete(String file, int position, CompletionProposalAcceptor acceptor);
+	void complete(String file, int line, int column, CompletionProposalAcceptor acceptor);
 }

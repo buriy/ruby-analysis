@@ -5,7 +5,8 @@ import java.util.Map;
 
 public class CompletionCommand extends Command {
 	public static final String OPT_FILE = "file";
-	public static final String OPT_POSITION = "position";
+	public static final String OPT_LINE = "line";
+	public static final String OPT_COLUMN = "column";
 	
 	private Map<String, String> variables = new HashMap<String, String>();
 
